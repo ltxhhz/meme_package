@@ -1,29 +1,46 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:meme_package/entities/meme.dart';
+import 'package:floor/floor.dart';
+import 'package:meme_package/db/app_db.dart';
+import 'package:meme_package/notifiers/meme.dart';
 import 'package:path/path.dart' as path;
 import 'package:meme_package/utils.dart';
 
 class Config {
   static late Directory dataPath;
-  static late File memeConfig;
+  static late File memeDBFile;
   static late Meme meme;
+  static late AppDatabase db;
   static init() async {
     dataPath = Directory(path.join(Utils.supportDir.path, 'data'));
     dataPath.createSync();
-    memeConfig = File(path.join(Utils.supportDir.path, 'data', 'meme.json'));
-    if (!memeConfig.existsSync()) {
-      memeConfig.writeAsStringSync('{}');
-      meme = Meme.create();
+    memeDBFile = File(path.join(Utils.supportDir.path, 'meme.db'));
+    db = await $FloorAppDatabase.databaseBuilder(memeDBFile.path).addCallback(_dbCallback).build();
+
+    if (!memeDBFile.existsSync()) {
+      meme = Meme();
     } else {
-      meme = Meme(memeConfig.readAsStringSync());
+      meme = Meme(await db.groupDao.getAllGroups());
+      if (meme.groups.isNotEmpty) {
+        meme.groups.forEach((group) {
+          group.getOwnImages();
+        });
+      }
     }
-    meme.addListener(save);
   }
 
-  static save() {
-    print(meme.toString());
-    memeConfig.writeAsStringSync(jsonEncode(meme));
-  }
+  static final _dbCallback = Callback(
+    onCreate: (database, version) {
+      print('on create');
+      database.execute('''CREATE TRIGGER update_sequence
+        AFTER DELETE ON groups
+        FOR EACH ROW
+        BEGIN
+            UPDATE groups
+            SET sequence = sequence - 1
+            WHERE sequence > OLD.sequence;
+        END;''');
+    },
+  );
 }

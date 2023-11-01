@@ -4,11 +4,12 @@ import 'package:context_menus/context_menus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:meme_package/config.dart';
-import 'package:meme_package/entities/group.dart';
-import 'package:meme_package/entities/item.dart';
-import 'package:meme_package/entities/meme.dart';
+import 'package:meme_package/notifiers/group.dart';
+import 'package:meme_package/notifiers/item.dart';
+import 'package:meme_package/notifiers/meme.dart';
 import 'package:meme_package/utils/platform_utils.dart';
 import 'package:mime/mime.dart';
+import 'package:ndialog/ndialog.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -103,6 +104,21 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                 '删除',
                                 onPressed: () {
                                   print('删除组');
+                                  NAlertDialog(
+                                    dialogStyle: DialogStyle(titleDivider: true),
+                                    title: const Text("删除组"),
+                                    content: const Text("确定删除后，其中的图片将移动到默认组"),
+                                    actions: <Widget>[
+                                      TextButton(child: const Text("同时删除图片"), onPressed: () => Navigator.pop(context)),
+                                      TextButton(
+                                          child: const Text("确定"),
+                                          onPressed: () {
+                                            Config.meme.removeGroup(e);
+                                            Navigator.pop(context);
+                                          }),
+                                      TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                    ],
+                                  ).show(context);
                                 },
                               ),
                             ],
@@ -127,7 +143,6 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
         child: DropTarget(
           onDragDone: (details) {
             context.read<Group>().addImages(details.files).then((value) {
-              Config.save();
               print('添加成功');
             });
           },
@@ -194,7 +209,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                           item.add(Formats.svg(value[index].file.readAsBytesSync()));
                                           break;
                                         default:
-                                        // item.add(Formats.fileUri(value[index].path.uri));
+                                          item.add(Formats.plainText(value[index].file.path.replaceFirst(value[index].file.parent.path, '')));
                                       }
                                       ClipboardWriter.instance.write([
                                         item
@@ -224,12 +239,12 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                               ],
                             ),
                             child: InkWell(
-                              child: value[index].shortcut.isEmpty
-                                  ? Image.file(value[index].file)
-                                  : Tooltip(
-                                      message: value[index].shortcut,
-                                      child: Image.file(value[index].file),
-                                    ),
+                              child: Image.file(value[index].file), //value[index].shortcut.isEmpty
+                              // ? Image.file(value[index].file)
+                              // : Tooltip(
+                              //     message: value[index].shortcut,
+                              //     child: Image.file(value[index].file),
+                              //   ),
                               onTap: () {
                                 print('tap');
                               },
@@ -266,7 +281,6 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
     ).then((value) {
       if (value.isNotEmpty) {
         Config.meme.groups[_tabController!.index].addImages(value).then((value) {
-          Config.save();
           completer.complete();
         });
       }

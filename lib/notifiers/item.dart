@@ -8,15 +8,19 @@ import '../config.dart';
 
 class Item {
   late File file;
-  String shortcut = '';
   late String hash;
-  Item(Map<String, dynamic> map) {
-    file = File(join(Config.dataPath.path, map['path']));
-    shortcut = map['shortcut'] ?? '';
-    hash = map['hash']!;
+  String groupUuid;
+  String filename;
+  Item({
+    String? hash,
+    required this.groupUuid,
+    required this.filename,
+  }) {
+    file = File(join(Config.dataPath.path, groupUuid, filename));
+    if (hash != null) {
+      this.hash = hash;
+    }
   }
-
-  Item.create({required this.file});
 
   Future<void> calcMD5() async {
     hash = md5.convert(file.readAsBytesSync()).toString();
@@ -27,7 +31,6 @@ class Item {
     return jsonEncode({
       'path': file.path,
       'hash': hash,
-      'shortcut': shortcut,
     });
   }
 
@@ -35,7 +38,6 @@ class Item {
     return {
       'path': relative(file.path, from: Config.dataPath.path),
       'hash': hash,
-      'shortcut': shortcut,
     };
   }
 }
