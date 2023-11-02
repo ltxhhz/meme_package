@@ -16,9 +16,8 @@ class Meme extends ChangeNotifier {
 
   void addGroup({required String title}) {
     // _groups.add(Group.create(title: title));
-    Config.db.database.rawQuery('SELECT MAX(sequence) AS max FROM groups;').then((value) {
-      print(value);
-      final g = Group.create(title: title, sequence: (value[0]['max'] as int) + 1);
+    Config.db.groupDao.getMaxSequence().then((value) {
+      final g = Group.create(title: title, sequence: (value ?? 0) + 1);
       Config.db.groupDao
           .addGroup(Groups(
         label: g.title,

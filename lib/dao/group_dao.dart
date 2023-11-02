@@ -21,4 +21,7 @@ abstract class GroupDao {
 
   @Query('SELECT * FROM images where gid=:gid')
   Future<List<ImageItem>> getAllImages(int gid);
+
+  @Query('SELECT MAX(sequence) FROM groups;')
+  Future<int?> getMaxSequence();
 }

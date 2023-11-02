@@ -10,12 +10,14 @@ part of 'app_db.dart';
 class $FloorAppDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDatabaseBuilder databaseBuilder(String name) => _$AppDatabaseBuilder(name);
+  static _$AppDatabaseBuilder databaseBuilder(String name) =>
+      _$AppDatabaseBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDatabaseBuilder inMemoryDatabaseBuilder() => _$AppDatabaseBuilder(null);
+  static _$AppDatabaseBuilder inMemoryDatabaseBuilder() =>
+      _$AppDatabaseBuilder(null);
 }
 
 class _$AppDatabaseBuilder {
@@ -41,7 +43,9 @@ class _$AppDatabaseBuilder {
 
   /// Creates the database and initializes it.
   Future<AppDatabase> build() async {
-    final path = name != null ? await sqfliteDatabaseFactory.getDatabasePath(name!) : ':memory:';
+    final path = name != null
+        ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+        : ':memory:';
     final database = _$AppDatabase();
     database.database = await database.open(
       path,
@@ -76,14 +80,18 @@ class _$AppDatabase extends AppDatabase {
         await callback?.onOpen?.call(database);
       },
       onUpgrade: (database, startVersion, endVersion) async {
-        await MigrationAdapter.runMigrations(database, startVersion, endVersion, migrations);
+        await MigrationAdapter.runMigrations(
+            database, startVersion, endVersion, migrations);
 
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
       },
       onCreate: (database, version) async {
-        await database.execute('CREATE TABLE IF NOT EXISTS `groups` (`gid` INTEGER PRIMARY KEY AUTOINCREMENT, `label` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `uuid` TEXT NOT NULL)');
-        await database.execute('CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
-        await database.execute('CREATE UNIQUE INDEX `index_images_hash` ON `images` (`hash`)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `groups` (`gid` INTEGER PRIMARY KEY AUTOINCREMENT, `label` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `uuid` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, `time` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
+        await database.execute(
+            'CREATE UNIQUE INDEX `index_images_hash` ON `images` (`hash`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -119,21 +127,19 @@ class _$GroupDao extends GroupDao {
         _imageItemDeletionAdapter = DeletionAdapter(
             database,
             'images',
-            [
-              'iid'
-            ],
+            ['iid'],
             (ImageItem item) => <String, Object?>{
                   'iid': item.iid,
                   'hash': item.hash,
                   'filename': item.filename,
-                  'gid': item.gid
+                  'gid': item.gid,
+                  'time': _dateTimeConverter.encode(item.time),
+                  'sequence': item.sequence
                 }),
         _groupsDeletionAdapter = DeletionAdapter(
             database,
             'groups',
-            [
-              'gid'
-            ],
+            ['gid'],
             (Groups item) => <String, Object?>{
                   'gid': item.gid,
                   'label': item.label,
@@ -155,19 +161,37 @@ class _$GroupDao extends GroupDao {
 
   @override
   Future<List<Groups>> getAllGroups() async {
-    return _queryAdapter.queryList('SELECT * FROM \"groups\"', mapper: (Map<String, Object?> row) => Groups(gid: row['gid'] as int?, label: row['label'] as String, sequence: row['sequence'] as int, uuid: row['uuid'] as String));
+    return _queryAdapter.queryList('SELECT * FROM \"groups\"',
+        mapper: (Map<String, Object?> row) => Groups(
+            gid: row['gid'] as int?,
+            label: row['label'] as String,
+            sequence: row['sequence'] as int,
+            uuid: row['uuid'] as String));
   }
 
   @override
   Future<List<ImageItem>> getAllImages(int gid) async {
-    return _queryAdapter.queryList('SELECT * FROM images where gid=?1', mapper: (Map<String, Object?> row) => ImageItem(iid: row['iid'] as int?, hash: row['hash'] as String, filename: row['filename'] as String, gid: row['gid'] as int), arguments: [
-      gid
-    ]);
+    return _queryAdapter.queryList('SELECT * FROM images where gid=?1',
+        mapper: (Map<String, Object?> row) => ImageItem(
+            iid: row['iid'] as int?,
+            hash: row['hash'] as String,
+            filename: row['filename'] as String,
+            gid: row['gid'] as int,
+            time: _dateTimeConverter.decode(row['time'] as int),
+            sequence: row['sequence'] as int),
+        arguments: [gid]);
+  }
+
+  @override
+  Future<int?> getMaxSequence() async {
+    return _queryAdapter.query('SELECT MAX(sequence) FROM groups;',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
   }
 
   @override
   Future<int> addGroup(Groups group) {
-    return _groupsInsertionAdapter.insertAndReturnId(group, OnConflictStrategy.abort);
+    return _groupsInsertionAdapter.insertAndReturnId(
+        group, OnConflictStrategy.abort);
   }
 
   @override
@@ -190,29 +214,45 @@ class _$ImageDao extends ImageDao {
   _$ImageDao(
     this.database,
     this.changeListener,
-  ) : _imageItemInsertionAdapter = InsertionAdapter(
+  )   : _queryAdapter = QueryAdapter(database),
+        _imageItemInsertionAdapter = InsertionAdapter(
             database,
             'images',
             (ImageItem item) => <String, Object?>{
                   'iid': item.iid,
                   'hash': item.hash,
                   'filename': item.filename,
-                  'gid': item.gid
+                  'gid': item.gid,
+                  'time': _dateTimeConverter.encode(item.time),
+                  'sequence': item.sequence
                 });
 
   final sqflite.DatabaseExecutor database;
 
   final StreamController<String> changeListener;
 
+  final QueryAdapter _queryAdapter;
+
   final InsertionAdapter<ImageItem> _imageItemInsertionAdapter;
 
   @override
+  Future<int?> getMaxSequence() async {
+    return _queryAdapter.query('SELECT MAX(sequence) FROM images;',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
   Future<int> addImage(ImageItem imageItem) {
-    return _imageItemInsertionAdapter.insertAndReturnId(imageItem, OnConflictStrategy.abort);
+    return _imageItemInsertionAdapter.insertAndReturnId(
+        imageItem, OnConflictStrategy.abort);
   }
 
   @override
   Future<List<int>> addImages(List<ImageItem> imageItem) {
-    return _imageItemInsertionAdapter.insertListAndReturnIds(imageItem, OnConflictStrategy.abort);
+    return _imageItemInsertionAdapter.insertListAndReturnIds(
+        imageItem, OnConflictStrategy.abort);
   }
 }
+
+// ignore_for_file: unused_element
+final _dateTimeConverter = DateTimeConverter();

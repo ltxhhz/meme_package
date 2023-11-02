@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:meme_package/entities/image.dart';
-import 'package:meme_package/notifiers/item.dart';
+import 'package:meme_package/notifiers/image.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
@@ -50,24 +50,26 @@ class Group extends ChangeNotifier {
 
   Future<void> getOwnImages() async {
     final imgs = await Config.db.groupDao.getAllImages(gid);
-
-    _items.addAll(imgs.map((e) => Item(groupUuid: uuid, hash: e.hash, filename: e.filename)));
+    _items.addAll(imgs.map((e) => Item(groupUuid: uuid, hash: e.hash, filename: e.filename, sequence: e.sequence)));
     notifyListeners();
   }
 
   Future<void> addImages(List<XFile> imgs) async {
     final List<ImageItem> imgItems = [];
+    int seq = await Config.db.imageDao.getMaxSequence() ?? 0;
     for (var img in imgs) {
       final imgSavePath = join(Config.dataPath.path, uuid, img.name);
       Directory(imgSavePath).parent.createSync(recursive: true);
       await img.saveTo(imgSavePath);
-      final item = Item(groupUuid: uuid, filename: img.name);
+      final item = Item(groupUuid: uuid, filename: img.name, sequence: ++seq);
       await item.calcMD5();
       _items.add(item);
       imgItems.add(ImageItem(
         hash: item.hash,
         filename: basename(item.file.path),
         gid: gid,
+        time: item.time,
+        sequence: seq,
       ));
     }
     await Config.db.imageDao.addImages(imgItems);

@@ -11,4 +11,7 @@ abstract class ImageDao {
 
   // @Update(onConflict: OnConflictStrategy.replace)
   // Future updateTag(ImageItem imageItem);
+
+  @Query('SELECT MAX(sequence) FROM images;')
+  Future<int?> getMaxSequence();
 }

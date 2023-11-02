@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:context_menus/context_menus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:meme_package/config.dart';
 import 'package:meme_package/notifiers/group.dart';
-import 'package:meme_package/notifiers/item.dart';
+import 'package:meme_package/notifiers/image.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:meme_package/utils/platform_utils.dart';
 import 'package:mime/mime.dart';
@@ -91,6 +92,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                     .groups
                     .map(
                       (e) => Tab(
+                        height: 40.h,
                         child: ContextMenuRegion(
                           contextMenu: GenericContextMenu(
                             buttonConfigs: [
@@ -123,7 +125,16 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                               ),
                             ],
                           ),
-                          child: Text(e.title),
+                          child: Column(
+                            children: [
+                              if (e.items.isNotEmpty)
+                                Image.file(
+                                  e.items[0].file,
+                                  height: 35,
+                                ),
+                              Text(e.title),
+                            ],
+                          ),
                         ),
                       ),
                     )

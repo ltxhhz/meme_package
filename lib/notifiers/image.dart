@@ -11,15 +11,21 @@ class Item {
   late String hash;
   String groupUuid;
   String filename;
+  late DateTime time;
+  int sequence;
+
   Item({
     String? hash,
     required this.groupUuid,
     required this.filename,
+    DateTime? time,
+    required this.sequence,
   }) {
     file = File(join(Config.dataPath.path, groupUuid, filename));
     if (hash != null) {
       this.hash = hash;
     }
+    this.time = time ?? DateTime.now();
   }
 
   Future<void> calcMD5() async {
@@ -31,13 +37,17 @@ class Item {
     return jsonEncode({
       'path': file.path,
       'hash': hash,
+      'uuid': groupUuid,
+      'filename': filename,
     });
   }
 
   Map toJson() {
     return {
-      'path': relative(file.path, from: Config.dataPath.path),
+      'path': file.path,
       'hash': hash,
+      'uuid': groupUuid,
+      'filename': filename,
     };
   }
 }

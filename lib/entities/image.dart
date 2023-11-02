@@ -26,12 +26,18 @@ class ImageItem {
 
   final String filename;
 
-  late final int gid;
+  final int gid;
+
+  final DateTime time;
+
+  final int sequence;
 
   ImageItem({
     this.iid,
     required this.hash,
     required this.filename,
     required this.gid,
+    required this.time,
+    required this.sequence,
   });
 }
