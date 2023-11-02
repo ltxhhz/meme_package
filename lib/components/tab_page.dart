@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:context_menus/context_menus.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,6 +15,8 @@ import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:super_clipboard/super_clipboard.dart';
+import 'package:super_context_menu/super_context_menu.dart';
+import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 
 class TabPage extends StatefulWidget {
   const TabPage({Key? key}) : super(key: key);
@@ -86,25 +88,42 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
               TabBar(
                 controller: _tabController,
                 isScrollable: true,
-                tabAlignment: TabAlignment.startOffset,
+                tabAlignment: TabAlignment.start,
+                labelPadding: EdgeInsets.zero,
                 tabs: context
                     .watch<Meme>()
                     .groups
                     .map(
                       (e) => Tab(
                         height: 40.h,
-                        child: ContextMenuRegion(
-                          contextMenu: GenericContextMenu(
-                            buttonConfigs: [
-                              ContextMenuButtonConfig(
-                                '新建',
-                                onPressed: () {
+                        child: ContextMenuWidget(
+                          child: Tooltip(
+                            message: e.title,
+                            child: SizedBox.square(
+                              dimension: 40.h,
+                              child: e.items.isNotEmpty
+                                  ? Image.file(
+                                      e.items[0].file,
+                                      // height: 20.h,
+                                    )
+                                  : Icon(
+                                      Icons.star,
+                                      size: 20.sp,
+                                      color: Colors.amber,
+                                    ),
+                            ),
+                          ),
+                          menuProvider: (request) {
+                            return Menu(children: [
+                              MenuAction(
+                                title: '新建',
+                                callback: () {
                                   _showAddDialog();
                                 },
                               ),
-                              ContextMenuButtonConfig(
-                                '删除',
-                                onPressed: () {
+                              MenuAction(
+                                title: '删除',
+                                callback: () {
                                   print('删除组');
                                   NAlertDialog(
                                     dialogStyle: DialogStyle(titleDivider: true),
@@ -123,18 +142,8 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                   ).show(context);
                                 },
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              if (e.items.isNotEmpty)
-                                Image.file(
-                                  e.items[0].file,
-                                  height: 35,
-                                ),
-                              Text(e.title),
-                            ],
-                          ),
+                            ]);
+                          },
                         ),
                       ),
                     )
@@ -189,39 +198,33 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                             child: Text('添加'),
                           );
                         } else {
-                          return ContextMenuRegion(
-                            enableLongPress: PlatformUtils.isMobile,
-                            contextMenu: GenericContextMenu(
-                              buttonConfigs: [
+                          return ContextMenuWidget(
+                            child: DragItemWidget(
+                              child: DraggableWidget(
+                                child: InkWell(
+                                  child: Image.file(value[index].file), //
+                                  onTap: () {
+                                    print('tap');
+                                  },
+                                ),
+                              ),
+                              dragItemProvider: (p0) {
+                                final item = DragItem(localData: {});
+                                _getImgFormats(value[index].file).forEach(item.add);
+                                return item;
+                              },
+                              allowedOperations: () => [
+                                DropOperation.copy
+                              ],
+                            ),
+                            menuProvider: (request) {
+                              return Menu(children: [
                                 if (PlatformUtils.isNotMobile)
-                                  ContextMenuButtonConfig(
-                                    '复制',
-                                    onPressed: () async {
+                                  MenuAction(
+                                    title: '复制',
+                                    callback: () async {
                                       final item = DataWriterItem();
-                                      item.add(Formats.fileUri(value[index].file.uri));
-                                      item.add(Formats.htmlText("<img src=\"file://${value[index].file.uri.path}\" />"));
-                                      switch (lookupMimeType(value[index].file.path)) {
-                                        case 'image/png':
-                                          item.add(Formats.png(value[index].file.readAsBytesSync()));
-                                          break;
-                                        case 'image/jpeg':
-                                          item.add(Formats.jpeg(value[index].file.readAsBytesSync()));
-                                          break;
-                                        case 'image/webp':
-                                          item.add(Formats.webp(value[index].file.readAsBytesSync()));
-                                          break;
-                                        case 'image/bmp':
-                                          item.add(Formats.bmp(value[index].file.readAsBytesSync()));
-                                          break;
-                                        case 'image/gif':
-                                          item.add(Formats.gif(value[index].file.readAsBytesSync()));
-                                          break;
-                                        case 'image/svg+xml':
-                                          item.add(Formats.svg(value[index].file.readAsBytesSync()));
-                                          break;
-                                        default:
-                                          item.add(Formats.plainText(value[index].file.path.replaceFirst(value[index].file.parent.path, '')));
-                                      }
+                                      _getImgFormats(value[index].file).forEach(item.add);
                                       ClipboardWriter.instance.write([
                                         item
                                       ]).then((value) {
@@ -229,37 +232,26 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                       });
                                     },
                                   ),
-                                ContextMenuButtonConfig(
-                                  '添加',
-                                  onPressed: () {
+                                MenuAction(
+                                  title: '添加',
+                                  callback: () {
                                     _showAddDialog();
                                   },
                                 ),
-                                ContextMenuButtonConfig(
-                                  '设置关键字',
-                                  onPressed: () {
+                                MenuAction(
+                                  title: '设置关键字',
+                                  callback: () {
                                     _showAddDialog();
                                   },
                                 ),
-                                ContextMenuButtonConfig(
-                                  '删除',
-                                  onPressed: () {
+                                MenuAction(
+                                  title: '删除',
+                                  callback: () {
                                     _showAddDialog();
                                   },
                                 ),
-                              ],
-                            ),
-                            child: InkWell(
-                              child: Image.file(value[index].file), //value[index].shortcut.isEmpty
-                              // ? Image.file(value[index].file)
-                              // : Tooltip(
-                              //     message: value[index].shortcut,
-                              //     child: Image.file(value[index].file),
-                              //   ),
-                              onTap: () {
-                                print('tap');
-                              },
-                            ),
+                              ]);
+                            },
                           );
                         }
                       },
@@ -271,6 +263,40 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  List<FutureOr<EncodedData>> _getImgFormats(File file) {
+    final List<FutureOr<EncodedData>> items = [];
+    items.add(Formats.fileUri(file.uri));
+    switch (lookupMimeType(file.path)) {
+      case 'image/png':
+        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
+        items.add(Formats.png(file.readAsBytesSync()));
+        break;
+      case 'image/jpeg':
+        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
+        items.add(Formats.jpeg(file.readAsBytesSync()));
+        break;
+      case 'image/webp':
+        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
+        items.add(Formats.webp(file.readAsBytesSync()));
+        break;
+      case 'image/bmp':
+        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
+        items.add(Formats.bmp(file.readAsBytesSync()));
+        break;
+      case 'image/gif':
+        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
+        items.add(Formats.gif(file.readAsBytesSync()));
+        break;
+      case 'image/svg+xml':
+        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
+        items.add(Formats.svg(file.readAsBytesSync()));
+        break;
+      default:
+        items.add(Formats.plainText(file.path.replaceFirst(file.parent.path, '')));
+    }
+    return items;
   }
 
   Future<void> _addImages() {

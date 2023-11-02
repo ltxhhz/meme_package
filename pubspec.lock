@@ -161,14 +161,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.17.2"
-  context_menus:
-    dependency: "direct main"
-    description:
-      name: context_menus
-      sha256: "25313f2a17dc936f541f8012761648cb58d936c5d6f6bf7282f137a4b9dedddb"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.0.2"
   convert:
     dependency: transitive
     description:
@@ -855,6 +847,22 @@ packages:
     description:
       name: super_clipboard
       sha256: "90af960cb8950020e491c97b4fcea6fd331e38d01b8741246a61aa92c1049310"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.7.2"
+  super_context_menu:
+    dependency: "direct main"
+    description:
+      name: super_context_menu
+      sha256: "242b6834a69055a7855c91012558baea8be2557e63d45269b5067f6f4fffa8bd"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.7.2"
+  super_drag_and_drop:
+    dependency: "direct main"
+    description:
+      name: super_drag_and_drop
+      sha256: dc849c17a8804327ae78725bf44d82ccedf2097dbf0252526059e5bf3cc4e190
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.7.2"

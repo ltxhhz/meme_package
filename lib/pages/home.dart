@@ -1,4 +1,3 @@
-import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:meme_package/components/tab_page.dart';
 import 'package:super_clipboard/super_clipboard.dart';
@@ -31,19 +30,17 @@ class Home extends StatelessWidget {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8),
-        child: ContextMenuOverlay(
-          child: const Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(labelText: '搜索'),
-              ),
-              Expanded(
-                child: TabPage(),
-              )
-            ],
-          ),
+      body: const Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          children: [
+            TextField(
+              decoration: InputDecoration(labelText: '搜索'),
+            ),
+            Expanded(
+              child: TabPage(),
+            )
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
