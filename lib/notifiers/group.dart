@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:meme_package/entities/image.dart';
 import 'package:meme_package/notifiers/image.dart';
 import 'package:path/path.dart';
-import 'package:uuid/uuid.dart';
 
 import '../config.dart';
+import '../utils.dart';
 
 class Group extends ChangeNotifier {
   late String uuid;
@@ -36,7 +35,7 @@ class Group extends ChangeNotifier {
     required this.gid,
     String? uuid,
   }) {
-    this.uuid = uuid ?? Uuid().v4().replaceAll('-', '');
+    this.uuid = uuid ?? Utils.uuid;
     title = label;
   }
 
@@ -45,7 +44,7 @@ class Group extends ChangeNotifier {
     required this.sequence,
   }) {
     this.title = title;
-    uuid = Uuid().v4().replaceAll('-', '');
+    uuid = Utils.uuid;
   }
 
   Future<void> getOwnImages() async {
@@ -54,14 +53,15 @@ class Group extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addImages(List<XFile> imgs) async {
+  Future<void> addImages(List<File> imgs) async {
     final List<ImageItem> imgItems = [];
     int seq = await Config.db.imageDao.getMaxSequence() ?? 0;
     for (var img in imgs) {
-      final imgSavePath = join(Config.dataPath.path, uuid, img.name);
+      final imgSavePath = join(Config.dataPath.path, uuid, basename(img.path));
       Directory(imgSavePath).parent.createSync(recursive: true);
-      await img.saveTo(imgSavePath);
-      final item = Item(groupUuid: uuid, filename: img.name, sequence: ++seq);
+      img.copySync(imgSavePath);
+      img.deleteSync();
+      final item = Item(groupUuid: uuid, filename: basename(img.path), sequence: ++seq);
       await item.calcMD5();
       _items.add(item);
       imgItems.add(ImageItem(
@@ -72,6 +72,7 @@ class Group extends ChangeNotifier {
         sequence: seq,
       ));
     }
+    //todo 判断是否MD5已存在
     await Config.db.imageDao.addImages(imgItems);
     notifyListeners();
   }

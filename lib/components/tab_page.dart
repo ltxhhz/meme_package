@@ -4,19 +4,19 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:meme_package/components/drop_region.dart';
 import 'package:meme_package/config.dart';
 import 'package:meme_package/notifiers/group.dart';
 import 'package:meme_package/notifiers/image.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:meme_package/utils/platform_utils.dart';
-import 'package:mime/mime.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
-import 'package:super_drag_and_drop/super_drag_and_drop.dart';
+
+import '../utils.dart';
 
 class TabPage extends StatefulWidget {
   const TabPage({Key? key}) : super(key: key);
@@ -157,12 +157,13 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
   }
 
   Widget _tabView(BuildContext context) {
+    final group = context.read<Group>();
     return SizedBox.expand(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        child: DropTarget(
-          onDragDone: (details) {
-            context.read<Group>().addImages(details.files).then((value) {
+        child: MyDropRegionWidget(
+          onReceive: (files) {
+            group.addImages(files).then((value) {
               print('添加成功');
             });
           },
@@ -199,23 +200,15 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                           );
                         } else {
                           return ContextMenuWidget(
-                            child: DragItemWidget(
-                              child: DraggableWidget(
-                                child: InkWell(
-                                  child: Image.file(value[index].file), //
-                                  onTap: () {
-                                    print('tap');
-                                  },
-                                ),
+                            child: dragItemWidget(
+                              context,
+                              file: value[index].file,
+                              child: InkWell(
+                                child: Image.file(value[index].file), //
+                                onTap: () {
+                                  print('tap');
+                                },
                               ),
-                              dragItemProvider: (p0) {
-                                final item = DragItem(localData: {});
-                                _getImgFormats(value[index].file).forEach(item.add);
-                                return item;
-                              },
-                              allowedOperations: () => [
-                                DropOperation.copy
-                              ],
                             ),
                             menuProvider: (request) {
                               return Menu(children: [
@@ -224,7 +217,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                     title: '复制',
                                     callback: () async {
                                       final item = DataWriterItem();
-                                      _getImgFormats(value[index].file).forEach(item.add);
+                                      getImgFormats(value[index].file).forEach(item.add);
                                       ClipboardWriter.instance.write([
                                         item
                                       ]).then((value) {
@@ -237,6 +230,10 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                   callback: () {
                                     _showAddDialog();
                                   },
+                                ),
+                                MenuAction(
+                                  title: '转换格式',
+                                  callback: () {},
                                 ),
                                 MenuAction(
                                   title: '设置关键字',
@@ -265,40 +262,6 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
     );
   }
 
-  List<FutureOr<EncodedData>> _getImgFormats(File file) {
-    final List<FutureOr<EncodedData>> items = [];
-    items.add(Formats.fileUri(file.uri));
-    switch (lookupMimeType(file.path)) {
-      case 'image/png':
-        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
-        items.add(Formats.png(file.readAsBytesSync()));
-        break;
-      case 'image/jpeg':
-        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
-        items.add(Formats.jpeg(file.readAsBytesSync()));
-        break;
-      case 'image/webp':
-        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
-        items.add(Formats.webp(file.readAsBytesSync()));
-        break;
-      case 'image/bmp':
-        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
-        items.add(Formats.bmp(file.readAsBytesSync()));
-        break;
-      case 'image/gif':
-        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
-        items.add(Formats.gif(file.readAsBytesSync()));
-        break;
-      case 'image/svg+xml':
-        items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
-        items.add(Formats.svg(file.readAsBytesSync()));
-        break;
-      default:
-        items.add(Formats.plainText(file.path.replaceFirst(file.parent.path, '')));
-    }
-    return items;
-  }
-
   Future<void> _addImages() {
     Completer completer = Completer();
     openFiles(
@@ -317,7 +280,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
       ],
     ).then((value) {
       if (value.isNotEmpty) {
-        Config.meme.groups[_tabController!.index].addImages(value).then((value) {
+        Config.meme.groups[_tabController!.index].addImages(value.map((e) => File(e.path)).toList()).then((value) {
           completer.complete();
         });
       }

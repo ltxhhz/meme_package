@@ -6,8 +6,12 @@ import 'package:meme_package/db/app_db.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:path/path.dart' as path;
 import 'package:meme_package/utils.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Config {
+  static late Directory supportDir;
+  static late Directory tempDir;
+
   static late Directory dataPath;
   static late File memeDBFile;
   static late Meme meme;
@@ -18,9 +22,15 @@ class Config {
   static final List<String> logs = [];
 
   static init() async {
-    dataPath = Directory(path.join(Utils.supportDir.path, 'data'));
+    supportDir = await getApplicationSupportDirectory();
+    supportDir.createSync(recursive: true);
+    tempDir = await getTemporaryDirectory();
+    Utils.logger.d('support dir: ${supportDir.path}');
+    Utils.logger.d('temp dir: ${tempDir.path}');
+
+    dataPath = Directory(path.join(supportDir.path, 'data'));
     dataPath.createSync();
-    memeDBFile = File(path.join(Utils.supportDir.path, 'meme.db'));
+    memeDBFile = File(path.join(supportDir.path, 'meme.db'));
     final migration1to2 = Migration(1, 2, (database) async {
       Utils.logger.i('migration 1 to 2');
     });

@@ -30,6 +30,10 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
               useMaterial3: true,
+              fontFamily: 'SimHei',
+              fontFamilyFallback: const [
+                'SourceHanSans'
+              ],
             ),
             home: child,
             locale: const Locale('zh', 'CH'),
