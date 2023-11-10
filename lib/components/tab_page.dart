@@ -162,6 +162,9 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: MyDropRegionWidget(
+          strokeWidth: 5,
+          fontSize: 30.sp,
+          borderRadius: BorderRadius.circular(15),
           onReceive: (files) {
             group.addImages(files).then((value) {
               print('添加成功');

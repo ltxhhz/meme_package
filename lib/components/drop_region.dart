@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mime/mime.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:path/path.dart' as path;
@@ -24,11 +23,12 @@ const List<FileFormat> fmts = [
 class MyDropRegionWidget extends StatefulWidget {
   final Widget child;
   final void Function(List<File> files) onReceive;
-  const MyDropRegionWidget({
-    super.key,
-    required this.onReceive,
-    required this.child,
-  });
+  final String tipText;
+  final bool makeTemp;
+  final double strokeWidth;
+  final double? fontSize;
+  final BorderRadius? borderRadius;
+  const MyDropRegionWidget({super.key, required this.onReceive, required this.child, this.tipText = '拖动到此', this.makeTemp = true, this.strokeWidth = 1, this.fontSize, this.borderRadius});
 
   @override
   State<MyDropRegionWidget> createState() => _MyDropRegionWidgetState();
@@ -48,24 +48,31 @@ class _MyDropRegionWidgetState extends State<MyDropRegionWidget> {
             if (e.canProvide(fmt)) {
               final com = Completer();
               futures.add(com.future);
-              final su = await e.dataReader!.getSuggestedName();
-              e.dataReader?.getFile(fmt, (value) async {
-                String? filename = value.fileName ?? su;
-                final fileData = await value.readAll();
-                filename ??= md5.convert(fileData).toString();
-                File file = File(path.join(Config.tempDir.path, filename));
-                if (file.existsSync()) {
-                  try {
-                    file.deleteSync();
-                  } catch (e) {
-                    final mime = lookupMimeType(filename, headerBytes: fileData.sublist(0, 20));
-                    file = File(path.join(Config.tempDir.path, '${Utils.uuid}.${mime == null ? '' : extensionFromMime(mime)}'));
+              if (widget.makeTemp) {
+                final su = await e.dataReader!.getSuggestedName();
+                e.dataReader?.getFile(fmt, (value) async {
+                  String? filename = value.fileName ?? su;
+                  final fileData = await value.readAll();
+                  filename ??= md5.convert(fileData).toString();
+                  File file = File(path.join(Config.tempDir.path, filename));
+                  if (file.existsSync()) {
+                    try {
+                      file.deleteSync();
+                    } catch (e) {
+                      final mime = lookupMimeType(filename, headerBytes: fileData.sublist(0, 20));
+                      file = File(path.join(Config.tempDir.path, '${Utils.uuid}.${mime == null ? '' : extensionFromMime(mime)}'));
+                    }
                   }
-                }
-                file.writeAsBytesSync(fileData);
-                files.add(file);
-                com.complete();
-              });
+                  file.writeAsBytesSync(fileData);
+                  files.add(file);
+                  com.complete();
+                });
+              } else {
+                e.dataReader?.getValue(Formats.fileUri, (value) {
+                  files.add(File(value!.toFilePath()));
+                  com.complete();
+                });
+              }
               break;
             }
           }
@@ -109,11 +116,11 @@ class _MyDropRegionWidgetState extends State<MyDropRegionWidget> {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: widget.borderRadius,
                     color: Colors.grey,
                   ),
                   child: DottedBorder(
-                    strokeWidth: 5,
+                    strokeWidth: widget.strokeWidth,
                     dashPattern: const [
                       8,
                       4
@@ -123,8 +130,8 @@ class _MyDropRegionWidgetState extends State<MyDropRegionWidget> {
                     radius: const Radius.circular(15),
                     child: Center(
                       child: Text(
-                        '拖动到此以添加',
-                        style: TextStyle(fontSize: 30.sp),
+                        widget.tipText,
+                        style: TextStyle(fontSize: widget.fontSize),
                       ),
                     ),
                   ),

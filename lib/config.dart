@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:floor/floor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meme_package/db/app_db.dart';
+import 'package:meme_package/notifiers/converter_task.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:path/path.dart' as path;
 import 'package:meme_package/utils.dart';
@@ -15,6 +16,7 @@ class Config {
   static late Directory dataPath;
   static late File memeDBFile;
   static late Meme meme;
+  static late ConverterTasks converterTasks;
   static late AppDatabase db;
 
   static bool keepLog = true;
@@ -52,6 +54,7 @@ class Config {
         }
       }
     }
+    converterTasks = ConverterTasks();
   }
 
   static final _dbCallback = Callback(
