@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meme_package/components/tab_page.dart';
-import 'package:meme_package/pages/converter.dart';
+import 'package:meme_package/router/routes/converter.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -36,14 +36,9 @@ class Home extends StatelessWidget {
           children: [
             const UserAccountsDrawerHeader(accountName: Text('accountName'), accountEmail: Text('accountEmail')),
             ListTile(
-              title: Text('data'),
+              title: const Text('类型转换'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ConverterPage(),
-                  ),
-                );
+                Navigator.pushNamed(context, ConverterRoute.name);
               },
             )
           ],

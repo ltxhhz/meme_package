@@ -5,15 +5,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:meme_package/notifiers/converter_task.dart';
 import 'package:provider/provider.dart';
+import 'package:super_context_menu/super_context_menu.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../router/routes/converter.dart';
 
 class ConverterTable extends StatelessWidget {
   const ConverterTable({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ConverterTasks>(
+    final arg = ModalRoute.of(context)!.settings.arguments as ConverterRouteArg?;
+
+    return Selector<ConverterTasks, List<ConverterTask>>(
       builder: (context, value, child) {
         return Table(
           columnWidths: const {
@@ -42,14 +47,16 @@ class ConverterTable extends StatelessWidget {
                 ),
               ),
             ]),
-            ..._buildTable(value.tasks),
+            ..._buildTable(value, arg: arg),
           ],
         );
       },
+      selector: (p0, p1) => p1.tasks,
+      shouldRebuild: (previous, next) => true,
     );
   }
 
-  List<TableRow> _buildTable(List<ConverterTask> tasks) {
+  List<TableRow> _buildTable(List<ConverterTask> tasks, {ConverterRouteArg? arg}) {
     List<TableRow> list = [];
     for (var i = 0; i < tasks.length; i++) {
       final e = tasks[i];
@@ -59,19 +66,40 @@ class ConverterTable extends StatelessWidget {
           TableCell(
             child: Padding(
               padding: EdgeInsets.only(right: 5.sp),
-              child: Text((i++).toString()),
+              child: Text(i.toString()),
             ),
           ),
           TableCell(
-            child: InkWell(
-              onTap: () {
-                // Process.run('explorer', [
-                //   '/select,',
-                //   e.source.path,
-                // ]);
-                launchUrl(e.source.parent.uri);
-              },
-              child: Text(e.source.path),
+            child: ContextMenuWidget(
+              child: InkWell(
+                onTap: () {
+                  // Process.run('explorer', [
+                  //   '/select,',
+                  //   e.source.path,
+                  // ]);
+                  launchUrl(e.source.parent.uri);
+                },
+                child: Text(e.source.path),
+              ),
+              menuProvider: (request) => Menu(children: [
+                MenuAction(
+                  title: '复制路径',
+                  callback: () {},
+                ),
+                MenuAction(
+                  title: '复制图片',
+                  callback: () {},
+                ),
+                MenuAction(
+                  title: '另存为',
+                  callback: () {},
+                ),
+                if (arg?.internal == true)
+                  MenuAction(
+                    title: '替换原图',
+                    callback: () {},
+                  )
+              ]),
             ),
           ),
           TableCell(

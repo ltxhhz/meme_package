@@ -15,6 +15,7 @@ class ConverterTasks extends ChangeNotifier {
   File? _inputFile;
   File? get inputFile => _inputFile;
 
+  ///赋值后自动配置获取mime
   set inputFile(File? e) {
     _inputFile = e!;
     final mime = lookupMimeType(e.path);
@@ -48,7 +49,8 @@ class ConverterTasks extends ChangeNotifier {
   }
 
   Future<void> push() {
-    final tempFile = File(path.join(Config.tempDir.createTempSync('meme-package').path, '${path.basenameWithoutExtension(inputFile!.path)}.${extensionFromMime(targetFormat.mimeTypes![0])}'));
+    final newExt = extensionFromMime(targetFormat.mimeTypes![0]);
+    final tempFile = File(path.join(Config.tempDir.createTempSync('meme-package').path, '${path.basenameWithoutExtension(inputFile!.path)}.${newExt == 'jpe' ? 'jpg' : newExt}'));
     final task = ConverterTask(
       sourceFormat: inputFormat!,
       source: inputFile!,
@@ -124,6 +126,11 @@ class ConverterTasks extends ChangeNotifier {
     }).catchError((err) {
       Utils.logger.e(err);
     });
+  }
+
+  void clearTasks() {
+    tasks.clear();
+    notifyListeners();
   }
 }
 

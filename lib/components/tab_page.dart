@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
+import '../router/routes/converter.dart';
 import '../utils.dart';
 
 class TabPage extends StatefulWidget {
@@ -236,7 +237,16 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                 ),
                                 MenuAction(
                                   title: '转换格式',
-                                  callback: () {},
+                                  callback: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      ConverterRoute.name,
+                                      arguments: ConverterRouteArg(
+                                        internal: true,
+                                        source: value[index].file,
+                                      ),
+                                    );
+                                  },
                                 ),
                                 MenuAction(
                                   title: '设置关键字',

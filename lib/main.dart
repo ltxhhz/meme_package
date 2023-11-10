@@ -7,6 +7,7 @@ import 'package:meme_package/utils.dart';
 import 'package:oktoast/oktoast.dart';
 
 import 'utils/platform_utils.dart';
+import './router/router.dart';
 
 void main() async {
   await Utils.init();
@@ -35,15 +36,16 @@ class MyApp extends StatelessWidget {
                 'SourceHanSans'
               ],
             ),
-            home: child,
-            locale: const Locale('zh', 'CH'),
+            onGenerateRoute: onGenerateRoute,
+            initialRoute: '/home',
+            locale: const Locale('zh', 'CN'),
             localizationsDelegates: const [
               GlobalCupertinoLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
             ],
             supportedLocales: const [
-              Locale('zh', 'CH'),
+              Locale('zh', 'CN'),
             ],
           );
         },
