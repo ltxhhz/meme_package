@@ -89,7 +89,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `groups` (`gid` INTEGER PRIMARY KEY AUTOINCREMENT, `label` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `uuid` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, `time` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
+            'CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, `time` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, `mime` TEXT NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_images_hash` ON `images` (`hash`)');
 
@@ -134,7 +134,8 @@ class _$GroupDao extends GroupDao {
                   'filename': item.filename,
                   'gid': item.gid,
                   'time': _dateTimeConverter.encode(item.time),
-                  'sequence': item.sequence
+                  'sequence': item.sequence,
+                  'mime': item.mime
                 }),
         _groupsDeletionAdapter = DeletionAdapter(
             database,
@@ -178,7 +179,8 @@ class _$GroupDao extends GroupDao {
             filename: row['filename'] as String,
             gid: row['gid'] as int,
             time: _dateTimeConverter.decode(row['time'] as int),
-            sequence: row['sequence'] as int),
+            sequence: row['sequence'] as int,
+            mime: row['mime'] as String),
         arguments: [gid]);
   }
 
@@ -224,7 +226,21 @@ class _$ImageDao extends ImageDao {
                   'filename': item.filename,
                   'gid': item.gid,
                   'time': _dateTimeConverter.encode(item.time),
-                  'sequence': item.sequence
+                  'sequence': item.sequence,
+                  'mime': item.mime
+                }),
+        _imageItemUpdateAdapter = UpdateAdapter(
+            database,
+            'images',
+            ['iid'],
+            (ImageItem item) => <String, Object?>{
+                  'iid': item.iid,
+                  'hash': item.hash,
+                  'filename': item.filename,
+                  'gid': item.gid,
+                  'time': _dateTimeConverter.encode(item.time),
+                  'sequence': item.sequence,
+                  'mime': item.mime
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -234,6 +250,8 @@ class _$ImageDao extends ImageDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<ImageItem> _imageItemInsertionAdapter;
+
+  final UpdateAdapter<ImageItem> _imageItemUpdateAdapter;
 
   @override
   Future<int?> getMaxSequence() async {
@@ -250,6 +268,12 @@ class _$ImageDao extends ImageDao {
   @override
   Future<List<int>> addImages(List<ImageItem> imageItem) {
     return _imageItemInsertionAdapter.insertListAndReturnIds(
+        imageItem, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateImage(ImageItem imageItem) {
+    return _imageItemUpdateAdapter.updateAndReturnChangedRows(
         imageItem, OnConflictStrategy.abort);
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:meme_package/config.dart';
@@ -50,6 +51,18 @@ class Meme extends ChangeNotifier {
       print(_groups);
       notifyListeners();
     });
+  }
+
+  Future<void> updateItem({
+    required String guuid,
+    required String hash,
+    required File file,
+  }) async {
+    final g = _groups.firstWhere((e) => e.uuid == guuid);
+    final item = g.items.firstWhere((e) => e.hash == hash);
+    await item.update(newFile: file);
+    Config.db.imageDao.updateImage(item.imageEntity);
+    notifyListeners();
   }
 
   Meme([List<Groups>? g]) {

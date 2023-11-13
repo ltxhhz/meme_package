@@ -22,9 +22,9 @@ class ConverterPage extends StatelessWidget {
     final controller = TextEditingController();
     final arg = ModalRoute.of(context)!.settings.arguments as ConverterRouteArg?;
     if (arg != null) {
-      if (arg.source != null) {
-        controller.text = arg.source!.path;
-        Config.converterTasks.inputFile = arg.source;
+      if (arg.sourceFile != null) {
+        controller.text = arg.sourceFile!.path;
+        Config.converterTasks.inputFile = arg.sourceFile;
       }
     }
     return Scaffold(
@@ -135,7 +135,7 @@ class ConverterPage extends StatelessWidget {
                   ],
                 ),
                 const Divider(),
-                const ConverterTable(),
+                ConverterTable(),
               ],
             ),
           ),

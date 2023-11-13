@@ -9,6 +9,9 @@ abstract class ImageDao {
   @insert
   Future<List<int>> addImages(List<ImageItem> imageItem);
 
+  @update
+  Future<int> updateImage(ImageItem imageItem);
+
   // @Update(onConflict: OnConflictStrategy.replace)
   // Future updateTag(ImageItem imageItem);
 

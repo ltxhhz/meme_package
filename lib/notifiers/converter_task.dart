@@ -102,6 +102,7 @@ class ConverterTasks extends ChangeNotifier {
             await img.encodeJpgFile(targetFile, image);
             break;
           case '2':
+            print(image.frameDuration);
             await img.encodeGifFile(targetFile, image);
             break;
           default:

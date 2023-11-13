@@ -32,6 +32,8 @@ class ImageItem {
 
   final int sequence;
 
+  final String mime;
+
   ImageItem({
     this.iid,
     required this.hash,
@@ -39,5 +41,6 @@ class ImageItem {
     required this.gid,
     required this.time,
     required this.sequence,
+    required this.mime,
   });
 }

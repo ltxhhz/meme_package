@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:meme_package/entities/image.dart';
 import 'package:meme_package/notifiers/image.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart';
 
 import '../config.dart';
@@ -49,31 +50,48 @@ class Group extends ChangeNotifier {
 
   Future<void> getOwnImages() async {
     final imgs = await Config.db.groupDao.getAllImages(gid);
-    _items.addAll(imgs.map((e) => Item(groupUuid: uuid, hash: e.hash, filename: e.filename, sequence: e.sequence)));
+    _items.addAll(imgs.map((e) => Item(
+          groupUuid: uuid,
+          hash: e.hash,
+          gid: gid,
+          filename: e.filename,
+          sequence: e.sequence,
+          iid: e.iid,
+          mime: e.mime,
+        )));
     notifyListeners();
   }
 
   Future<void> addImages(List<File> imgs) async {
     final List<ImageItem> imgItems = [];
+    final List<Function> cb = [];
     int seq = await Config.db.imageDao.getMaxSequence() ?? 0;
     for (var img in imgs) {
       final imgSavePath = join(Config.dataPath.path, uuid, basename(img.path));
       Directory(imgSavePath).parent.createSync(recursive: true);
       img.copySync(imgSavePath);
       img.deleteSync();
-      final item = Item(groupUuid: uuid, filename: basename(img.path), sequence: ++seq);
+      final item = Item(groupUuid: uuid, gid: gid, filename: basename(img.path), sequence: ++seq);
       await item.calcMD5();
       _items.add(item);
+      cb.add((int iid) {
+        item.iid = iid;
+      });
       imgItems.add(ImageItem(
         hash: item.hash,
         filename: basename(item.file.path),
         gid: gid,
         time: item.time,
         sequence: seq,
+        mime: item.mime,
       ));
     }
     //todo 判断是否MD5已存在
-    await Config.db.imageDao.addImages(imgItems);
+    await Config.db.imageDao.addImages(imgItems).then((value) {
+      for (var i = 0; i < value.length; i++) {
+        cb[i](value[i]);
+      }
+    });
     notifyListeners();
   }
 

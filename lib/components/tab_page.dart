@@ -13,6 +13,7 @@ import 'package:meme_package/utils/platform_utils.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
+import 'package:rotated_corner_decoration/rotated_corner_decoration.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 
@@ -208,7 +209,16 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                               context,
                               file: value[index].file,
                               child: InkWell(
-                                child: Image.file(value[index].file), //
+                                child: Container(
+                                  foregroundDecoration: RotatedCornerDecoration.withColor(
+                                    color: Theme.of(context).primaryColor.withAlpha(180),
+                                    badgeSize: Size.square(20.h),
+                                    textSpan: TextSpan(
+                                      text: value[index].mime.replaceFirst('image/', ''),
+                                    ),
+                                  ),
+                                  child: Image.file(value[index].file),
+                                ), //
                                 onTap: () {
                                   print('tap');
                                 },
@@ -243,7 +253,9 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                       ConverterRoute.name,
                                       arguments: ConverterRouteArg(
                                         internal: true,
-                                        source: value[index].file,
+                                        sourceFile: value[index].file,
+                                        guuid: value[index].groupUuid,
+                                        hash: value[index].hash,
                                       ),
                                     );
                                   },

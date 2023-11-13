@@ -14,9 +14,13 @@ class ConverterRoute {
 
 class ConverterRouteArg {
   bool internal;
-  File? source;
+  File? sourceFile;
+  String? guuid;
+  String? hash;
   ConverterRouteArg({
     this.internal = false,
-    this.source,
+    this.sourceFile,
+    this.guuid,
+    this.hash,
   });
 }
