@@ -135,7 +135,7 @@ class ConverterPage extends StatelessWidget {
                   ],
                 ),
                 const Divider(),
-                ConverterTable(),
+                const ConverterTable(),
               ],
             ),
           ),
