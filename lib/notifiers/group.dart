@@ -95,6 +95,13 @@ class Group extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> removeImage(Item item) {
+    return Config.db.groupDao.removeImage(item.imageEntity).then((value) {
+      _items.remove(item);
+      notifyListeners();
+    });
+  }
+
   @override
   String toString() {
     return jsonEncode({

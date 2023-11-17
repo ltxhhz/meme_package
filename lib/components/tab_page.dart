@@ -269,7 +269,29 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                 MenuAction(
                                   title: '删除',
                                   callback: () {
-                                    _showAddDialog();
+                                    NAlertDialog(
+                                      dialogStyle: DialogStyle(titleDivider: true),
+                                      title: const Text("确定删除"),
+                                      content: const Text("This is NDialog's content"),
+                                      actions: <Widget>[
+                                        TextButton(
+                                            child: const Text("确定"),
+                                            onPressed: () {
+                                              final progressDialog = ProgressDialog(context,
+                                                  title: const Text('删除图片'),
+                                                  message: const Text(
+                                                    '正在删除',
+                                                  ))
+                                                ..show();
+                                              Config.meme.groups[_tabController!.index].removeImage(value[index]).then((value) {
+                                                Navigator.pop(context);
+                                              }).whenComplete(() {
+                                                progressDialog.dismiss();
+                                              });
+                                            }),
+                                        TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                      ],
+                                    ).show(context);
                                   },
                                 ),
                               ]);
