@@ -61,6 +61,7 @@ dependencies:
   file_picker: ^6.1.1
   loading_animation_widget: ^1.2.0+4
   rotated_corner_decoration: ^2.1.0+1
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

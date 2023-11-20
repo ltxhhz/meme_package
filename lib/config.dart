@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:floor/floor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meme_package/db/app_db.dart';
+import 'package:meme_package/entities/group.dart';
 import 'package:meme_package/notifiers/converter_task.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:path/path.dart' as path;
@@ -58,9 +59,9 @@ class Config {
   }
 
   static final _dbCallback = Callback(
-    onCreate: (database, version) {
+    onCreate: (database, version) async {
       Utils.logger.i('on create');
-      database.execute('''CREATE TRIGGER update_sequence
+      await database.execute('''CREATE TRIGGER update_sequence
         AFTER DELETE ON groups
         FOR EACH ROW
         BEGIN
@@ -68,6 +69,11 @@ class Config {
             SET sequence = sequence - 1
             WHERE sequence > OLD.sequence;
         END;''');
+      await database.insert('groups', {
+        'label': '默认',
+        'sequence': 0,
+        'uuid': Utils.uuid,
+      });
     },
   );
 }

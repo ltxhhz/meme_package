@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:meme_package/entities/image.dart';
 import 'package:meme_package/notifiers/image.dart';
-import 'package:mime/mime.dart';
 import 'package:path/path.dart';
 
 import '../config.dart';
@@ -60,6 +59,10 @@ class Group extends ChangeNotifier {
           mime: e.mime,
         )));
     notifyListeners();
+  }
+
+  Item getImageById(int id) {
+    return _items.firstWhere((img) => img.iid == id);
   }
 
   Future<void> addImages(List<File> imgs) async {

@@ -65,6 +65,8 @@ class _$AppDatabase extends AppDatabase {
 
   ImageDao? _imageDaoInstance;
 
+  TagDao? _tagDaoInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -89,9 +91,13 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `groups` (`gid` INTEGER PRIMARY KEY AUTOINCREMENT, `label` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `uuid` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, `time` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, `mime` TEXT NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
+            'CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, `time` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, `mime` TEXT NOT NULL, `content` TEXT NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `tags` (`tid` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `iid` INTEGER NOT NULL, FOREIGN KEY (`iid`) REFERENCES `images` (`iid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_images_hash` ON `images` (`hash`)');
+        await database
+            .execute('CREATE INDEX `index_tags_name` ON `tags` (`name`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -107,6 +113,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   ImageDao get imageDao {
     return _imageDaoInstance ??= _$ImageDao(database, changeListener);
+  }
+
+  @override
+  TagDao get tagDao {
+    return _tagDaoInstance ??= _$TagDao(database, changeListener);
   }
 }
 
@@ -135,7 +146,8 @@ class _$GroupDao extends GroupDao {
                   'gid': item.gid,
                   'time': _dateTimeConverter.encode(item.time),
                   'sequence': item.sequence,
-                  'mime': item.mime
+                  'mime': item.mime,
+                  'content': item.content
                 }),
         _groupsDeletionAdapter = DeletionAdapter(
             database,
@@ -180,7 +192,8 @@ class _$GroupDao extends GroupDao {
             gid: row['gid'] as int,
             time: _dateTimeConverter.decode(row['time'] as int),
             sequence: row['sequence'] as int,
-            mime: row['mime'] as String),
+            mime: row['mime'] as String,
+            content: row['content'] as String),
         arguments: [gid]);
   }
 
@@ -227,7 +240,8 @@ class _$ImageDao extends ImageDao {
                   'gid': item.gid,
                   'time': _dateTimeConverter.encode(item.time),
                   'sequence': item.sequence,
-                  'mime': item.mime
+                  'mime': item.mime,
+                  'content': item.content
                 }),
         _imageItemUpdateAdapter = UpdateAdapter(
             database,
@@ -240,7 +254,8 @@ class _$ImageDao extends ImageDao {
                   'gid': item.gid,
                   'time': _dateTimeConverter.encode(item.time),
                   'sequence': item.sequence,
-                  'mime': item.mime
+                  'mime': item.mime,
+                  'content': item.content
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -275,6 +290,88 @@ class _$ImageDao extends ImageDao {
   Future<int> updateImage(ImageItem imageItem) {
     return _imageItemUpdateAdapter.updateAndReturnChangedRows(
         imageItem, OnConflictStrategy.abort);
+  }
+}
+
+class _$TagDao extends TagDao {
+  _$TagDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _tagInsertionAdapter = InsertionAdapter(
+            database,
+            'tags',
+            (Tag item) => <String, Object?>{
+                  'tid': item.tid,
+                  'name': item.name,
+                  'iid': item.iid
+                }),
+        _tagUpdateAdapter = UpdateAdapter(
+            database,
+            'tags',
+            ['tid'],
+            (Tag item) => <String, Object?>{
+                  'tid': item.tid,
+                  'name': item.name,
+                  'iid': item.iid
+                }),
+        _tagDeletionAdapter = DeletionAdapter(
+            database,
+            'tags',
+            ['tid'],
+            (Tag item) => <String, Object?>{
+                  'tid': item.tid,
+                  'name': item.name,
+                  'iid': item.iid
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Tag> _tagInsertionAdapter;
+
+  final UpdateAdapter<Tag> _tagUpdateAdapter;
+
+  final DeletionAdapter<Tag> _tagDeletionAdapter;
+
+  @override
+  Future<List<Tag>> getTag(int tid) async {
+    return _queryAdapter.queryList('select * from tags where tid=?1',
+        mapper: (Map<String, Object?> row) => Tag(
+            tid: row['tid'] as int?,
+            iid: row['iid'] as int,
+            name: row['name'] as String),
+        arguments: [tid]);
+  }
+
+  @override
+  Future<List<Tag>> getTagByIid(int iid) async {
+    return _queryAdapter.queryList('select * from tags where iid=?1',
+        mapper: (Map<String, Object?> row) => Tag(
+            tid: row['tid'] as int?,
+            iid: row['iid'] as int,
+            name: row['name'] as String),
+        arguments: [iid]);
+  }
+
+  @override
+  Future<int> addTag(Tag tag) {
+    return _tagInsertionAdapter.insertAndReturnId(
+        tag, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateTag(Tag tag) {
+    return _tagUpdateAdapter.updateAndReturnChangedRows(
+        tag, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> removeTag(Tag tag) {
+    return _tagDeletionAdapter.deleteAndReturnChangedRows(tag);
   }
 }
 

@@ -71,9 +71,8 @@ class ConverterTable extends StatelessWidget {
               child: Text(i.toString()),
             ),
           ),
-          TableCell(
-            child: _buildMenu(e, isSource: true),
-          ),
+          _buildMenu(e, isSource: true),
+          //todo 改为 TableRowInkWell
           TableCell(
             child: Selector<ConverterTasks, Tuple2<ConverterTask, double>>(
               builder: (context, value, child) {
@@ -103,7 +102,7 @@ class ConverterTable extends StatelessWidget {
     Widget? child,
   }) {
     return ContextMenuWidget(
-      child: InkWell(
+      child: TableRowInkWell(
         onTap: () {
           // Process.run('explorer', [
           //   '/select,',

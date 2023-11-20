@@ -9,6 +9,7 @@ import 'package:meme_package/config.dart';
 import 'package:meme_package/notifiers/group.dart';
 import 'package:meme_package/notifiers/image.dart';
 import 'package:meme_package/notifiers/meme.dart';
+import 'package:meme_package/router/routes/image_detail.dart';
 import 'package:meme_package/utils/platform_utils.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:oktoast/oktoast.dart';
@@ -123,27 +124,28 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                   _showAddDialog();
                                 },
                               ),
-                              MenuAction(
-                                title: '删除',
-                                callback: () {
-                                  print('删除组');
-                                  NAlertDialog(
-                                    dialogStyle: DialogStyle(titleDivider: true),
-                                    title: const Text("删除组"),
-                                    content: const Text("确定删除后，其中的图片将移动到默认组"),
-                                    actions: <Widget>[
-                                      TextButton(child: const Text("同时删除图片"), onPressed: () => Navigator.pop(context)),
-                                      TextButton(
-                                          child: const Text("确定"),
-                                          onPressed: () {
-                                            Config.meme.removeGroup(e);
-                                            Navigator.pop(context);
-                                          }),
-                                      TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
-                                    ],
-                                  ).show(context);
-                                },
-                              ),
+                              if (e.gid != 1)
+                                MenuAction(
+                                  title: '删除',
+                                  callback: () {
+                                    print('删除组');
+                                    NAlertDialog(
+                                      dialogStyle: DialogStyle(titleDivider: true),
+                                      title: const Text("删除组"),
+                                      content: const Text("确定删除后，其中的图片将移动到默认组"),
+                                      actions: <Widget>[
+                                        TextButton(child: const Text("同时删除图片"), onPressed: () => Navigator.pop(context)),
+                                        TextButton(
+                                            child: const Text("确定"),
+                                            onPressed: () {
+                                              Config.meme.removeGroup(e);
+                                              Navigator.pop(context);
+                                            }),
+                                        TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                      ],
+                                    ).show(context);
+                                  },
+                                ),
                             ]);
                           },
                         ),
@@ -176,10 +178,11 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
             builder: (context, value, child) {
               return value.isEmpty
                   ? Center(
-                      child: Column(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('空'),
+                          //todo 拖动触发只有一小块
+                          const Text('拖动图片到此 或'),
                           TextButton(
                             onPressed: () {
                               _addImages();
@@ -221,6 +224,14 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                 ), //
                                 onTap: () {
                                   print('tap');
+                                  Navigator.pushNamed(
+                                    context,
+                                    ImageDetailRoute.name,
+                                    arguments: ImageDetailRouteArg(
+                                      imageId: value[index].iid,
+                                      groupId: value[index].gid,
+                                    ),
+                                  );
                                 },
                               ),
                             ),

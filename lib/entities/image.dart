@@ -1,5 +1,5 @@
 import 'package:floor/floor.dart';
-import 'package:meme_package/entities/group.dart';
+import './group.dart';
 
 @Entity(
   tableName: 'images',
@@ -12,11 +12,15 @@ import 'package:meme_package/entities/group.dart';
     )
   ],
   foreignKeys: [
-    ForeignKey(childColumns: [
-      'gid'
-    ], parentColumns: [
-      'gid'
-    ], entity: Groups)
+    ForeignKey(
+      childColumns: [
+        'gid'
+      ],
+      parentColumns: [
+        'gid'
+      ],
+      entity: Groups,
+    )
   ],
 )
 class ImageItem {
@@ -34,6 +38,8 @@ class ImageItem {
 
   final String mime;
 
+  final String content;
+
   ImageItem({
     this.iid,
     required this.hash,
@@ -42,5 +48,6 @@ class ImageItem {
     required this.time,
     required this.sequence,
     required this.mime,
+    this.content = '',
   });
 }
