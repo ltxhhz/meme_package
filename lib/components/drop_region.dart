@@ -40,6 +40,7 @@ class _MyDropRegionWidgetState extends State<MyDropRegionWidget> {
   @override
   Widget build(BuildContext context) {
     return DropRegion(
+      hitTestBehavior: HitTestBehavior.opaque,
       onPerformDrop: (event) async {
         final List<File> files = [];
         final List<Future<void>> futures = [];

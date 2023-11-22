@@ -199,8 +199,8 @@ class _$GroupDao extends GroupDao {
 
   @override
   Future<int?> getMaxSequence() async {
-    return _queryAdapter.query('SELECT MAX(sequence) FROM groups;',
-        mapper: (Map<String, Object?> row) => row.values.first as int);
+    return _queryAdapter.query<int?>('SELECT MAX(sequence) FROM groups;',
+        mapper: (Map<String, Object?> row) => row.values.first as int?);
   }
 
   @override
@@ -270,8 +270,8 @@ class _$ImageDao extends ImageDao {
 
   @override
   Future<int?> getMaxSequence() async {
-    return _queryAdapter.query('SELECT MAX(sequence) FROM images;',
-        mapper: (Map<String, Object?> row) => row.values.first as int);
+    return _queryAdapter.query<int?>('SELECT MAX(sequence) FROM images;',
+        mapper: (Map<String, Object?> row) => row.values.first as int?);
   }
 
   @override
@@ -377,3 +377,4 @@ class _$TagDao extends TagDao {
 
 // ignore_for_file: unused_element
 final _dateTimeConverter = DateTimeConverter();
+

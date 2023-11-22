@@ -171,26 +171,32 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(15),
           onReceive: (files) {
             group.addImages(files).then((value) {
+              if (value.isNotEmpty) {
+                showToast('${value.length}个图片已存在');
+              }
               print('添加成功');
             });
           },
           child: Selector<Group, List<Item>>(
             builder: (context, value, child) {
               return value.isEmpty
-                  ? Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          //todo 拖动触发只有一小块
-                          const Text('拖动图片到此 或'),
-                          TextButton(
-                            onPressed: () {
-                              _addImages();
-                            },
-                            child: Text('添加'),
-                          )
-                        ],
-                      ),
+                  ? Row(
+                      // mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('拖动图片到此 或'),
+                        TextButton(
+                          onPressed: () {
+                            _addImages().then((value) {
+                              if (value.isNotEmpty) {
+                                showToast('${value.length}个图片已存在');
+                              }
+                              print('添加成功');
+                            });
+                          },
+                          child: Text('添加'),
+                        )
+                      ],
                     )
                   : GridView.builder(
                       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -202,7 +208,12 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                         if (index == value.length) {
                           return ElevatedButton(
                             onPressed: () {
-                              _addImages();
+                              _addImages().then((value) {
+                                if (value.isNotEmpty) {
+                                  showToast('${value.length}个图片已存在');
+                                }
+                                print('添加成功');
+                              });
                             },
                             child: Text('添加'),
                           );
@@ -320,8 +331,8 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _addImages() {
-    Completer completer = Completer();
+  Future<List<Item>> _addImages() {
+    final completer = Completer<List<Item>>();
     openFiles(
       acceptedTypeGroups: const [
         XTypeGroup(
@@ -339,7 +350,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
     ).then((value) {
       if (value.isNotEmpty) {
         Config.meme.groups[_tabController!.index].addImages(value.map((e) => File(e.path)).toList()).then((value) {
-          completer.complete();
+          completer.complete(value);
         });
       }
     });

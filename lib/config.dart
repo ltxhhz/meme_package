@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:floor/floor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meme_package/db/app_db.dart';
-import 'package:meme_package/entities/group.dart';
 import 'package:meme_package/notifiers/converter_task.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:path/path.dart' as path;
@@ -68,6 +67,13 @@ class Config {
             UPDATE groups
             SET sequence = sequence - 1
             WHERE sequence > OLD.sequence;
+        END;''');
+      await database.execute('''CREATE TRIGGER check_and_reset_sequence
+        -- 在images表上执行删除操作后触发
+        AFTER DELETE ON images
+        BEGIN
+          -- 删除sqlite_sequence表中与images表对应的行
+          DELETE FROM sqlite_sequence WHERE name = 'images';
         END;''');
       await database.insert('groups', {
         'label': '默认',

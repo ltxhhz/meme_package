@@ -65,8 +65,9 @@ class Group extends ChangeNotifier {
     return _items.firstWhere((img) => img.iid == id);
   }
 
-  Future<void> addImages(List<File> imgs) async {
+  Future<List<Item>> addImages(List<File> imgs) async {
     final List<ImageItem> imgItems = [];
+    final List<Item> existItems = [];
     final List<Function> cb = [];
     int seq = await Config.db.imageDao.getMaxSequence() ?? 0;
     for (var img in imgs) {
@@ -76,26 +77,31 @@ class Group extends ChangeNotifier {
       img.deleteSync();
       final item = Item(groupUuid: uuid, gid: gid, filename: basename(img.path), sequence: ++seq);
       await item.calcMD5();
-      _items.add(item);
-      cb.add((int iid) {
-        item.iid = iid;
-      });
-      imgItems.add(ImageItem(
-        hash: item.hash,
-        filename: basename(item.file.path),
-        gid: gid,
-        time: item.time,
-        sequence: seq,
-        mime: item.mime,
-      ));
+      final exi = Config.meme.findByHash(item.hash);
+      if (exi != null) {
+        existItems.add(item);
+      } else {
+        _items.add(item);
+        cb.add((int iid) {
+          item.iid = iid;
+        });
+        imgItems.add(ImageItem(
+          hash: item.hash,
+          filename: basename(item.file.path),
+          gid: gid,
+          time: item.time,
+          sequence: seq,
+          mime: item.mime,
+        ));
+      }
     }
-    //todo 判断是否MD5已存在
     await Config.db.imageDao.addImages(imgItems).then((value) {
       for (var i = 0; i < value.length; i++) {
         cb[i](value[i]);
       }
     });
     notifyListeners();
+    return existItems;
   }
 
   Future<void> removeImage(Item item) {

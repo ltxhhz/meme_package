@@ -58,6 +58,15 @@ class ImageDetailPage extends StatelessWidget {
                           ),
                         ]),
                         TableRow(children: [
+                          _tableHead(title: 'sequence'),
+                          TableRowInkWell(
+                            child: _sizedText(value.sequence.toString()),
+                            onTap: () {
+                              showToast(value.sequence.toString());
+                            },
+                          ),
+                        ]),
+                        TableRow(children: [
                           _tableHead(title: 'gid'),
                           TableRowInkWell(
                             child: _sizedText(value.gid.toString()),

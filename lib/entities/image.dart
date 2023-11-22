@@ -25,7 +25,7 @@ import './group.dart';
 )
 class ImageItem {
   @PrimaryKey(autoGenerate: true)
-  final int? iid;
+  int? iid;
   final String hash;
 
   final String filename;
@@ -50,4 +50,15 @@ class ImageItem {
     required this.mime,
     this.content = '',
   });
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is ImageItem && runtimeType == other.runtimeType && iid == other.iid && hash == other.hash && gid == other.gid && filename == other.filename && sequence == other.sequence && mime == other.mime && content == other.content;
+
+  @override
+  int get hashCode => iid.hashCode ^ hash.hashCode ^ gid.hashCode ^ time.hashCode ^ mime.hashCode;
+
+  @override
+  String toString() {
+    return 'Task{iid: $iid, hash: $hash, time: ${time.millisecondsSinceEpoch}, sequence: $sequence, mime: $mime, content: $content}';
+  }
 }

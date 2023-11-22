@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:meme_package/config.dart';
 import 'package:meme_package/entities/group.dart';
 import 'package:meme_package/notifiers/group.dart';
+import 'package:meme_package/notifiers/image.dart';
 
 class Meme extends ChangeNotifier {
   late List<Group> _groups;
@@ -74,6 +75,19 @@ class Meme extends ChangeNotifier {
               uuid: e.uuid,
             ))
         .toList();
+  }
+
+  Item? findByHash(String hash) {
+    for (var i = 0; i < _groups.length; i++) {
+      final group = _groups[i];
+      try {
+        final item = group.items.firstWhere((item) => item.hash == hash);
+        return item;
+      } catch (e) {
+        continue;
+      }
+    }
+    return null;
   }
 
   @override
