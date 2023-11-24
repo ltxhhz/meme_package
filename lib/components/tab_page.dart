@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:rotated_corner_decoration/rotated_corner_decoration.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+import 'package:tuple/tuple.dart';
 
 import '../router/routes/converter.dart';
 import '../utils.dart';
@@ -194,7 +195,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                               print('添加成功');
                             });
                           },
-                          child: Text('添加'),
+                          child: const Text('添加'),
                         )
                       ],
                     )
@@ -206,7 +207,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                       itemCount: value.length + 1,
                       itemBuilder: (context, index) {
                         if (index == value.length) {
-                          return ElevatedButton(
+                          return IconButton.filledTonal(
                             onPressed: () {
                               _addImages().then((value) {
                                 if (value.isNotEmpty) {
@@ -215,108 +216,156 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                 print('添加成功');
                               });
                             },
-                            child: Text('添加'),
+                            icon: const Icon(Icons.add),
                           );
                         } else {
-                          return ContextMenuWidget(
-                            child: dragItemWidget(
-                              context,
-                              file: value[index].file,
-                              child: InkWell(
-                                child: Container(
-                                  foregroundDecoration: RotatedCornerDecoration.withColor(
-                                    color: Theme.of(context).primaryColor.withAlpha(180),
-                                    badgeSize: Size.square(20.h),
-                                    textSpan: TextSpan(
-                                      text: value[index].mime.replaceFirst('image/', ''),
-                                    ),
-                                  ),
-                                  child: Image.file(value[index].file),
-                                ), //
-                                onTap: () {
-                                  print('tap');
-                                  Navigator.pushNamed(
-                                    context,
-                                    ImageDetailRoute.name,
-                                    arguments: ImageDetailRouteArg(
-                                      imageId: value[index].iid,
-                                      groupId: value[index].gid,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            menuProvider: (request) {
-                              return Menu(children: [
-                                if (PlatformUtils.isNotMobile)
-                                  MenuAction(
-                                    title: '复制',
-                                    callback: () async {
-                                      final item = DataWriterItem();
-                                      getImgFormats(value[index].file).forEach(item.add);
-                                      ClipboardWriter.instance.write([
-                                        item
-                                      ]).then((value) {
-                                        showToast('已复制');
-                                      });
+                          return ChangeNotifierProvider.value(
+                            value: value[index],
+                            builder: (context, child) {
+                              return ContextMenuWidget(
+                                child: dragItemWidget(
+                                  context,
+                                  file: value[index].file,
+                                  child: InkWell(
+                                    child: Container(
+                                      foregroundDecoration: RotatedCornerDecoration.withColor(
+                                        color: Theme.of(context).primaryColor.withAlpha(180),
+                                        badgeSize: Size.square(20.h),
+                                        textSpan: TextSpan(
+                                          text: value[index].mime.replaceFirst('image/', ''),
+                                        ),
+                                      ),
+                                      child: Selector<Item, Tuple2<String, File>>(
+                                        builder: (context, value, child) => value.item1.isEmpty
+                                            ? Image.file(value.item2)
+                                            : Tooltip(
+                                                message: value.item1,
+                                                child: Image.file(value.item2),
+                                              ),
+                                        selector: (p0, p1) => Tuple2(p1.content, p1.file),
+                                      ),
+                                    ), //
+                                    onTap: () {
+                                      print('tap');
+                                      Navigator.pushNamed(
+                                        context,
+                                        ImageDetailRoute.name,
+                                        arguments: ImageDetailRouteArg(
+                                          imageId: value[index].iid,
+                                          groupId: value[index].gid,
+                                        ),
+                                      );
                                     },
                                   ),
-                                MenuAction(
-                                  title: '添加',
-                                  callback: () {
-                                    _showAddDialog();
-                                  },
                                 ),
-                                MenuAction(
-                                  title: '转换格式',
-                                  callback: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      ConverterRoute.name,
-                                      arguments: ConverterRouteArg(
-                                        internal: true,
-                                        sourceFile: value[index].file,
-                                        guuid: value[index].groupUuid,
-                                        hash: value[index].hash,
+                                menuProvider: (request) {
+                                  return Menu(children: [
+                                    if (PlatformUtils.isNotMobile)
+                                      MenuAction(
+                                        title: '复制',
+                                        callback: () async {
+                                          final item = DataWriterItem();
+                                          getImgFormats(value[index].file).forEach(item.add);
+                                          ClipboardWriter.instance.write([
+                                            item
+                                          ]).then((value) {
+                                            showToast('已复制');
+                                          });
+                                        },
                                       ),
-                                    );
-                                  },
-                                ),
-                                MenuAction(
-                                  title: '设置关键字',
-                                  callback: () {
-                                    _showAddDialog();
-                                  },
-                                ),
-                                MenuAction(
-                                  title: '删除',
-                                  callback: () {
-                                    NAlertDialog(
-                                      dialogStyle: DialogStyle(titleDivider: true),
-                                      title: const Text("确定删除"),
-                                      content: const Text("This is NDialog's content"),
-                                      actions: <Widget>[
-                                        TextButton(
-                                            child: const Text("确定"),
-                                            onPressed: () {
-                                              final progressDialog = ProgressDialog(context,
-                                                  title: const Text('删除图片'),
-                                                  message: const Text(
-                                                    '正在删除',
-                                                  ))
-                                                ..show();
-                                              Config.meme.groups[_tabController!.index].removeImage(value[index]).then((value) {
-                                                Navigator.pop(context);
-                                              }).whenComplete(() {
-                                                progressDialog.dismiss();
-                                              });
-                                            }),
-                                        TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
-                                      ],
-                                    ).show(context);
-                                  },
-                                ),
-                              ]);
+                                    MenuAction(
+                                      title: '添加',
+                                      callback: () {
+                                        _showAddDialog();
+                                      },
+                                    ),
+                                    MenuAction(
+                                      title: '转换格式',
+                                      callback: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          ConverterRoute.name,
+                                          arguments: ConverterRouteArg(
+                                            internal: true,
+                                            sourceFile: value[index].file,
+                                            guuid: value[index].groupUuid,
+                                            hash: value[index].hash,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    MenuAction(
+                                      title: '设置内容',
+                                      callback: () {
+                                        final controller = TextEditingController(text: value[index].content);
+                                        NDialog(
+                                          title: const Text('设置内容'),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              TextField(
+                                                autofocus: true,
+                                                controller: controller,
+                                                decoration: const InputDecoration(
+                                                  labelText: '内容',
+                                                  hintText: '图片中的文字',
+                                                ),
+                                                onEditingComplete: () {
+                                                  final str = controller.text;
+                                                  Utils.logger.i(str);
+                                                  value[index].content = str;
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                              const SizedBox(
+                                                height: 10,
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  final str = controller.text;
+                                                  Utils.logger.i(str);
+                                                  value[index].content = str;
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('确定'),
+                                              ),
+                                            ],
+                                          ),
+                                        ).show(context).whenComplete(() {
+                                          controller.dispose();
+                                        });
+                                      },
+                                    ),
+                                    MenuAction(
+                                      title: '删除',
+                                      callback: () {
+                                        NAlertDialog(
+                                          dialogStyle: DialogStyle(titleDivider: true),
+                                          title: const Text("确定删除"),
+                                          actions: <Widget>[
+                                            TextButton(
+                                                child: const Text("确定"),
+                                                onPressed: () {
+                                                  final progressDialog = ProgressDialog(context,
+                                                      title: const Text('删除图片'),
+                                                      message: const Text(
+                                                        '正在删除',
+                                                      ))
+                                                    ..show();
+                                                  Config.meme.groups[_tabController!.index].removeImage(value[index]).then((value) {
+                                                    Navigator.pop(context);
+                                                  }).whenComplete(() {
+                                                    progressDialog.dismiss();
+                                                  });
+                                                }),
+                                            TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                          ],
+                                        ).show(context);
+                                      },
+                                    ),
+                                  ]);
+                                },
+                              );
                             },
                           );
                         }
@@ -370,7 +419,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: InputDecoration(labelText: '组名'),
+                decoration: const InputDecoration(labelText: '组名'),
                 onChanged: (value) {
                   print(value);
                   groupName = value;

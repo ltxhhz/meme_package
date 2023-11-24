@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meme_package/components/search_bar_delegate.dart';
 import 'package:meme_package/components/tab_page.dart';
 import 'package:meme_package/router/routes/converter.dart';
 import 'package:super_clipboard/super_clipboard.dart';
@@ -44,14 +45,18 @@ class Home extends StatelessWidget {
           ],
         ),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(8),
+      body: Padding(
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
             TextField(
-              decoration: InputDecoration(labelText: '搜索'),
+              decoration: const InputDecoration(labelText: '搜索', hintText: '点击搜索'),
+              readOnly: true,
+              onTap: () {
+                showSearch(context: context, delegate: SearchBarDelegate());
+              },
             ),
-            Expanded(
+            const Expanded(
               child: TabPage(),
             )
           ],

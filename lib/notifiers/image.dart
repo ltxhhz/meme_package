@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/material.dart';
 import 'package:meme_package/entities/image.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart';
 
 import '../config.dart';
 
-class Item {
+class Item extends ChangeNotifier {
   late File file;
   late String hash;
   late int iid;
@@ -18,6 +19,14 @@ class Item {
   late DateTime time;
   int sequence;
   late String mime;
+  String _content = '';
+  String get content => _content;
+
+  set content(String e) {
+    _content = e;
+    notifyListeners();
+    Config.db.imageDao.updateImage(imageEntity);
+  }
 
   ImageItem get imageEntity => ImageItem(
         iid: iid,
@@ -27,6 +36,7 @@ class Item {
         time: time,
         sequence: sequence,
         mime: mime,
+        content: _content,
       );
 
   Item({
@@ -38,6 +48,7 @@ class Item {
     required this.sequence,
     int? iid,
     String? mime,
+    String content = '',
   }) {
     file = File(join(Config.dataPath.path, groupUuid, filename));
     if (hash != null) {
@@ -49,6 +60,7 @@ class Item {
     } else {
       this.mime = mime ?? lookupMimeType(file.path) ?? '';
     }
+    _content = content;
     if (iid != null) {
       this.iid = iid;
     }

@@ -105,6 +105,12 @@ class ImageDetailPage extends StatelessWidget {
                             child: _sizedText(value.groupUuid),
                           ),
                         ]),
+                        TableRow(children: [
+                          _tableHead(title: 'content'),
+                          TableRowInkWell(
+                            child: _sizedText(value.content),
+                          ),
+                        ]),
                       ],
                     ),
                   )

@@ -358,6 +358,54 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_keyboard_visibility:
+    dependency: transitive
+    description:
+      name: flutter_keyboard_visibility
+      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "5.4.1"
+  flutter_keyboard_visibility_linux:
+    dependency: transitive
+    description:
+      name: flutter_keyboard_visibility_linux
+      sha256: "6fba7cd9bb033b6ddd8c2beb4c99ad02d728f1e6e6d9b9446667398b2ac39f08"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.0"
+  flutter_keyboard_visibility_macos:
+    dependency: transitive
+    description:
+      name: flutter_keyboard_visibility_macos
+      sha256: c5c49b16fff453dfdafdc16f26bdd8fb8d55812a1d50b0ce25fc8d9f2e53d086
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.0"
+  flutter_keyboard_visibility_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_keyboard_visibility_platform_interface
+      sha256: e43a89845873f7be10cb3884345ceb9aebf00a659f479d1c8f4293fcb37022a4
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.0"
+  flutter_keyboard_visibility_web:
+    dependency: transitive
+    description:
+      name: flutter_keyboard_visibility_web
+      sha256: d3771a2e752880c79203f8d80658401d0c998e4183edca05a149f5098ce6e3d1
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.0"
+  flutter_keyboard_visibility_windows:
+    dependency: transitive
+    description:
+      name: flutter_keyboard_visibility_windows
+      sha256: fc4b0f0b6be9b93ae527f3d527fb56ee2d918cd88bbca438c478af7bcfd0ef73
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -387,11 +435,27 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "5.9.0"
+  flutter_tagging_plus:
+    dependency: "direct main"
+    description:
+      name: flutter_tagging_plus
+      sha256: "146deab83360a641ace3c3a855ec760beabd57a7388044509d5efa1eb2d2e1f5"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.0.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_typeahead:
+    dependency: transitive
+    description:
+      name: flutter_typeahead
+      sha256: b9942bd5b7611a6ec3f0730c477146cffa4cd4b051077983ba67ddfc9e7ee818
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.8.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -709,6 +773,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.7"
+  pointer_interceptor:
+    dependency: transitive
+    description:
+      name: pointer_interceptor
+      sha256: adf7a637f97c077041d36801b43be08559fd4322d2127b3f20bb7be1b9eebc22
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.9.3+7"
   pointycastle:
     dependency: transitive
     description:
@@ -773,6 +845,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.4"
+  simple_tags:
+    dependency: "direct main"
+    description:
+      name: simple_tags
+      sha256: "7d037a93982223081fb98286ea17078d22f08a7f21b2b7757919fd63265bc598"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.0.6"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -946,6 +1026,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.6.1"
+  textfield_tags:
+    dependency: "direct main"
+    description:
+      name: textfield_tags
+      sha256: c1d215f481e7e8da5c79719825e595db4f829bf1ad3fce4c7ce43d340aa72683
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.2"
   timing:
     dependency: transitive
     description:

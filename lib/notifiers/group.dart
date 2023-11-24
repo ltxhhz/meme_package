@@ -57,6 +57,8 @@ class Group extends ChangeNotifier {
           sequence: e.sequence,
           iid: e.iid,
           mime: e.mime,
+          time: e.time,
+          content: e.content,
         )));
     notifyListeners();
   }
