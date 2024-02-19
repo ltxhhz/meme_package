@@ -126,20 +126,20 @@ class _$GroupDao extends GroupDao {
     this.database,
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
-        _groupsInsertionAdapter = InsertionAdapter(
+        _groupEntityInsertionAdapter = InsertionAdapter(
             database,
             'groups',
-            (Groups item) => <String, Object?>{
+            (GroupEntity item) => <String, Object?>{
                   'gid': item.gid,
                   'label': item.label,
                   'sequence': item.sequence,
                   'uuid': item.uuid
                 }),
-        _imageItemDeletionAdapter = DeletionAdapter(
+        _imageEntityDeletionAdapter = DeletionAdapter(
             database,
             'images',
             ['iid'],
-            (ImageItem item) => <String, Object?>{
+            (ImageEntity item) => <String, Object?>{
                   'iid': item.iid,
                   'hash': item.hash,
                   'filename': item.filename,
@@ -149,11 +149,11 @@ class _$GroupDao extends GroupDao {
                   'mime': item.mime,
                   'content': item.content
                 }),
-        _groupsDeletionAdapter = DeletionAdapter(
+        _groupEntityDeletionAdapter = DeletionAdapter(
             database,
             'groups',
             ['gid'],
-            (Groups item) => <String, Object?>{
+            (GroupEntity item) => <String, Object?>{
                   'gid': item.gid,
                   'label': item.label,
                   'sequence': item.sequence,
@@ -166,16 +166,16 @@ class _$GroupDao extends GroupDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<Groups> _groupsInsertionAdapter;
+  final InsertionAdapter<GroupEntity> _groupEntityInsertionAdapter;
 
-  final DeletionAdapter<ImageItem> _imageItemDeletionAdapter;
+  final DeletionAdapter<ImageEntity> _imageEntityDeletionAdapter;
 
-  final DeletionAdapter<Groups> _groupsDeletionAdapter;
+  final DeletionAdapter<GroupEntity> _groupEntityDeletionAdapter;
 
   @override
-  Future<List<Groups>> getAllGroups() async {
+  Future<List<GroupEntity>> getAllGroups() async {
     return _queryAdapter.queryList('SELECT * FROM \"groups\"',
-        mapper: (Map<String, Object?> row) => Groups(
+        mapper: (Map<String, Object?> row) => GroupEntity(
             gid: row['gid'] as int?,
             label: row['label'] as String,
             sequence: row['sequence'] as int,
@@ -183,9 +183,9 @@ class _$GroupDao extends GroupDao {
   }
 
   @override
-  Future<List<ImageItem>> getAllImages(int gid) async {
+  Future<List<ImageEntity>> getAllImages(int gid) async {
     return _queryAdapter.queryList('SELECT * FROM images where gid=?1',
-        mapper: (Map<String, Object?> row) => ImageItem(
+        mapper: (Map<String, Object?> row) => ImageEntity(
             iid: row['iid'] as int?,
             hash: row['hash'] as String,
             filename: row['filename'] as String,
@@ -198,30 +198,25 @@ class _$GroupDao extends GroupDao {
   }
 
   @override
-  Future<int?> getMaxSequence() async {
-    return _queryAdapter.query<int?>('SELECT MAX(sequence) FROM groups;',
-        mapper: (Map<String, Object?> row) => row.values.first as int?);
-  }
-
-  @override
-  Future<int> addGroup(Groups group) {
-    return _groupsInsertionAdapter.insertAndReturnId(
+  Future<int> addGroup(GroupEntity group) {
+    return _groupEntityInsertionAdapter.insertAndReturnId(
         group, OnConflictStrategy.abort);
   }
 
   @override
-  Future<int> removeImage(ImageItem imageItem) {
-    return _imageItemDeletionAdapter.deleteAndReturnChangedRows(imageItem);
+  Future<int> removeImage(ImageEntity imageItem) {
+    return _imageEntityDeletionAdapter.deleteAndReturnChangedRows(imageItem);
   }
 
   @override
-  Future<int> removeImages(List<ImageItem> imageItem) {
-    return _imageItemDeletionAdapter.deleteListAndReturnChangedRows(imageItem);
+  Future<int> removeImages(List<ImageEntity> imageItem) {
+    return _imageEntityDeletionAdapter
+        .deleteListAndReturnChangedRows(imageItem);
   }
 
   @override
-  Future<int> removeGroup(Groups group) {
-    return _groupsDeletionAdapter.deleteAndReturnChangedRows(group);
+  Future<int> removeGroup(GroupEntity group) {
+    return _groupEntityDeletionAdapter.deleteAndReturnChangedRows(group);
   }
 }
 
@@ -229,11 +224,10 @@ class _$ImageDao extends ImageDao {
   _$ImageDao(
     this.database,
     this.changeListener,
-  )   : _queryAdapter = QueryAdapter(database),
-        _imageItemInsertionAdapter = InsertionAdapter(
+  )   : _imageEntityInsertionAdapter = InsertionAdapter(
             database,
             'images',
-            (ImageItem item) => <String, Object?>{
+            (ImageEntity item) => <String, Object?>{
                   'iid': item.iid,
                   'hash': item.hash,
                   'filename': item.filename,
@@ -243,11 +237,11 @@ class _$ImageDao extends ImageDao {
                   'mime': item.mime,
                   'content': item.content
                 }),
-        _imageItemUpdateAdapter = UpdateAdapter(
+        _imageEntityUpdateAdapter = UpdateAdapter(
             database,
             'images',
             ['iid'],
-            (ImageItem item) => <String, Object?>{
+            (ImageEntity item) => <String, Object?>{
                   'iid': item.iid,
                   'hash': item.hash,
                   'filename': item.filename,
@@ -262,33 +256,25 @@ class _$ImageDao extends ImageDao {
 
   final StreamController<String> changeListener;
 
-  final QueryAdapter _queryAdapter;
+  final InsertionAdapter<ImageEntity> _imageEntityInsertionAdapter;
 
-  final InsertionAdapter<ImageItem> _imageItemInsertionAdapter;
-
-  final UpdateAdapter<ImageItem> _imageItemUpdateAdapter;
+  final UpdateAdapter<ImageEntity> _imageEntityUpdateAdapter;
 
   @override
-  Future<int?> getMaxSequence() async {
-    return _queryAdapter.query<int?>('SELECT MAX(sequence) FROM images;',
-        mapper: (Map<String, Object?> row) => row.values.first as int?);
-  }
-
-  @override
-  Future<int> addImage(ImageItem imageItem) {
-    return _imageItemInsertionAdapter.insertAndReturnId(
+  Future<int> addImage(ImageEntity imageItem) {
+    return _imageEntityInsertionAdapter.insertAndReturnId(
         imageItem, OnConflictStrategy.abort);
   }
 
   @override
-  Future<List<int>> addImages(List<ImageItem> imageItem) {
-    return _imageItemInsertionAdapter.insertListAndReturnIds(
+  Future<List<int>> addImages(List<ImageEntity> imageItem) {
+    return _imageEntityInsertionAdapter.insertListAndReturnIds(
         imageItem, OnConflictStrategy.abort);
   }
 
   @override
-  Future<int> updateImage(ImageItem imageItem) {
-    return _imageItemUpdateAdapter.updateAndReturnChangedRows(
+  Future<int> updateImage(ImageEntity imageItem) {
+    return _imageEntityUpdateAdapter.updateAndReturnChangedRows(
         imageItem, OnConflictStrategy.abort);
   }
 }
@@ -298,28 +284,28 @@ class _$TagDao extends TagDao {
     this.database,
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
-        _tagInsertionAdapter = InsertionAdapter(
+        _tagEntityInsertionAdapter = InsertionAdapter(
             database,
             'tags',
-            (Tag item) => <String, Object?>{
+            (TagEntity item) => <String, Object?>{
                   'tid': item.tid,
                   'name': item.name,
                   'iid': item.iid
                 }),
-        _tagUpdateAdapter = UpdateAdapter(
+        _tagEntityUpdateAdapter = UpdateAdapter(
             database,
             'tags',
             ['tid'],
-            (Tag item) => <String, Object?>{
+            (TagEntity item) => <String, Object?>{
                   'tid': item.tid,
                   'name': item.name,
                   'iid': item.iid
                 }),
-        _tagDeletionAdapter = DeletionAdapter(
+        _tagEntityDeletionAdapter = DeletionAdapter(
             database,
             'tags',
             ['tid'],
-            (Tag item) => <String, Object?>{
+            (TagEntity item) => <String, Object?>{
                   'tid': item.tid,
                   'name': item.name,
                   'iid': item.iid
@@ -331,16 +317,16 @@ class _$TagDao extends TagDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<Tag> _tagInsertionAdapter;
+  final InsertionAdapter<TagEntity> _tagEntityInsertionAdapter;
 
-  final UpdateAdapter<Tag> _tagUpdateAdapter;
+  final UpdateAdapter<TagEntity> _tagEntityUpdateAdapter;
 
-  final DeletionAdapter<Tag> _tagDeletionAdapter;
+  final DeletionAdapter<TagEntity> _tagEntityDeletionAdapter;
 
   @override
-  Future<List<Tag>> getTag(int tid) async {
+  Future<List<TagEntity>> getTag(int tid) async {
     return _queryAdapter.queryList('select * from tags where tid=?1',
-        mapper: (Map<String, Object?> row) => Tag(
+        mapper: (Map<String, Object?> row) => TagEntity(
             tid: row['tid'] as int?,
             iid: row['iid'] as int,
             name: row['name'] as String),
@@ -348,9 +334,9 @@ class _$TagDao extends TagDao {
   }
 
   @override
-  Future<List<Tag>> getTagByIid(int iid) async {
+  Future<List<TagEntity>> getTagByIid(int iid) async {
     return _queryAdapter.queryList('select * from tags where iid=?1',
-        mapper: (Map<String, Object?> row) => Tag(
+        mapper: (Map<String, Object?> row) => TagEntity(
             tid: row['tid'] as int?,
             iid: row['iid'] as int,
             name: row['name'] as String),
@@ -358,23 +344,22 @@ class _$TagDao extends TagDao {
   }
 
   @override
-  Future<int> addTag(Tag tag) {
-    return _tagInsertionAdapter.insertAndReturnId(
+  Future<int> addTag(TagEntity tag) {
+    return _tagEntityInsertionAdapter.insertAndReturnId(
         tag, OnConflictStrategy.abort);
   }
 
   @override
-  Future<int> updateTag(Tag tag) {
-    return _tagUpdateAdapter.updateAndReturnChangedRows(
+  Future<int> updateTag(TagEntity tag) {
+    return _tagEntityUpdateAdapter.updateAndReturnChangedRows(
         tag, OnConflictStrategy.abort);
   }
 
   @override
-  Future<int> removeTag(Tag tag) {
-    return _tagDeletionAdapter.deleteAndReturnChangedRows(tag);
+  Future<int> removeTag(TagEntity tag) {
+    return _tagEntityDeletionAdapter.deleteAndReturnChangedRows(tag);
   }
 }
 
 // ignore_for_file: unused_element
 final _dateTimeConverter = DateTimeConverter();
-

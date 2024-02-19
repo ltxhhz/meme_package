@@ -23,7 +23,7 @@ import '../router/routes/converter.dart';
 import '../utils.dart';
 
 class TabPage extends StatefulWidget {
-  const TabPage({Key? key}) : super(key: key);
+  const TabPage({super.key});
 
   @override
   createState() => _TabPageState();
@@ -45,42 +45,47 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    print('build');
     return ChangeNotifierProvider.value(
       value: Config.meme,
       builder: (context, child) {
-        if (context.watch<Meme>().groups.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '空',
-                  style: TextStyle(fontSize: 40),
-                ),
-                TextButton(
-                  onPressed: () {
-                    _showAddDialog();
-                  },
-                  child: const Text('创建新组'),
-                )
-              ],
-            ),
-          );
-        } else {
-          if (_tabController == null) {
-            _tabController = TabController(length: context.read<Meme>().groups.length, vsync: this);
-          } else if (_tabController!.length != context.read<Meme>().groups.length) {
-            _tabController!.dispose();
-            _tabController = TabController(length: context.read<Meme>().groups.length, vsync: this);
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
+        final groups = context.read<Meme>().groups;
+        // if (groups.isEmpty) {
+        //   return Center(
+        //     child: Column(
+        //       mainAxisSize: MainAxisSize.min,
+        //       children: [
+        //         const Text(
+        //           '空',
+        //           style: TextStyle(fontSize: 40),
+        //         ),
+        //         TextButton(
+        //           onPressed: () {
+        //             _showAddDialog();
+        //           },
+        //           child: const Text('创建新组'),
+        //         )
+        //       ],
+        //     ),
+        //   );
+        // } else {
+        if (_tabController == null) {
+          _tabController = TabController(length: groups.length, vsync: this);
+        } else if (_tabController!.length != groups.length) {
+          final i = _tabController!.index;
+          _tabController!.dispose();
+          _tabController = TabController(initialIndex: i, length: groups.length, vsync: this);
+        }
+        print('build1');
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SizedBox.expand(
                 child: TabBarView(
                   controller: _tabController,
                   children: context
-                      .read<Meme>()
+                      .watch<Meme>()
                       .groups
                       .map((e) => ChangeNotifierProvider.value(
                             value: e,
@@ -89,80 +94,96 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                       .toList(),
                 ),
               ),
-              TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                labelPadding: EdgeInsets.zero,
-                tabs: context
-                    .watch<Meme>()
-                    .groups
-                    .map(
-                      (e) => Tab(
-                        height: 40.h,
-                        child: ContextMenuWidget(
-                          child: Tooltip(
-                            message: e.title,
-                            child: SizedBox.square(
-                              dimension: 40.h,
-                              child: e.items.isNotEmpty
-                                  ? Image.file(
-                                      e.items[0].file,
-                                      // height: 20.h,
-                                    )
-                                  : Icon(
-                                      Icons.star,
-                                      size: 20.sp,
-                                      color: Colors.amber,
-                                    ),
-                            ),
+            ),
+            TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              labelPadding: EdgeInsets.zero,
+              tabs: context
+                  .watch<Meme>()
+                  .groups
+                  .map(
+                    (e) => Tab(
+                      height: 40.h,
+                      child: ContextMenuWidget(
+                        child: Tooltip(
+                          message: e.title,
+                          child: SizedBox.square(
+                            dimension: 40.h,
+                            child: e.items.isNotEmpty
+                                ? Image.file(
+                                    e.items[0].file,
+                                    // height: 20.h,
+                                  )
+                                : Icon(
+                                    Icons.star,
+                                    size: 20.sp,
+                                    color: Colors.amber,
+                                  ),
                           ),
-                          menuProvider: (request) {
-                            return Menu(children: [
+                        ),
+                        menuProvider: (request) {
+                          return Menu(children: [
+                            MenuAction(
+                              title: '新建',
+                              callback: () {
+                                _showAddDialog();
+                              },
+                            ),
+                            if (e.gid != 1)
                               MenuAction(
-                                title: '新建',
+                                title: '删除',
                                 callback: () {
-                                  _showAddDialog();
+                                  print('删除组');
+                                  bool deleteImages = false;
+                                  NAlertDialog(
+                                    dialogStyle: DialogStyle(titleDivider: true),
+                                    title: const Text("删除组"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text("确定删除后，其中的图片将移动到默认组"),
+                                        Row(children: [
+                                          const Text("同时删除图片"),
+                                          Checkbox(
+                                            value: deleteImages,
+                                            onChanged: (value) {
+                                              deleteImages = value ?? false;
+                                            },
+                                          ),
+                                        ]),
+                                      ],
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                          child: const Text("确定"),
+                                          onPressed: () {
+                                            //todo 删除组内图片
+                                            Config.meme.removeGroup(e);
+                                            Navigator.pop(context);
+                                          }),
+                                      TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                    ],
+                                  ).show(context);
                                 },
                               ),
-                              if (e.gid != 1)
-                                MenuAction(
-                                  title: '删除',
-                                  callback: () {
-                                    print('删除组');
-                                    NAlertDialog(
-                                      dialogStyle: DialogStyle(titleDivider: true),
-                                      title: const Text("删除组"),
-                                      content: const Text("确定删除后，其中的图片将移动到默认组"),
-                                      actions: <Widget>[
-                                        TextButton(child: const Text("同时删除图片"), onPressed: () => Navigator.pop(context)),
-                                        TextButton(
-                                            child: const Text("确定"),
-                                            onPressed: () {
-                                              Config.meme.removeGroup(e);
-                                              Navigator.pop(context);
-                                            }),
-                                        TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
-                                      ],
-                                    ).show(context);
-                                  },
-                                ),
-                            ]);
-                          },
-                        ),
+                          ]);
+                        },
                       ),
-                    )
-                    .toList(),
-              ),
-            ],
-          );
-        }
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        );
+        // }
       },
     );
   }
 
   Widget _tabView(BuildContext context) {
-    final group = context.read<Group>();
+    final group = context.read<GroupItem>();
     return SizedBox.expand(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -178,7 +199,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
               print('添加成功');
             });
           },
-          child: Selector<Group, List<Item>>(
+          child: Selector<GroupItem, List<ImageItem>>(
             builder: (context, value, child) {
               return value.isEmpty
                   ? Row(
@@ -235,7 +256,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                           text: value[index].mime.replaceFirst('image/', ''),
                                         ),
                                       ),
-                                      child: Selector<Item, Tuple2<String, File>>(
+                                      child: Selector<ImageItem, Tuple2<String, File>>(
                                         builder: (context, value, child) => value.item1.isEmpty
                                             ? Image.file(value.item2)
                                             : Tooltip(
@@ -380,8 +401,8 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
     );
   }
 
-  Future<List<Item>> _addImages() {
-    final completer = Completer<List<Item>>();
+  Future<List<ImageItem>> _addImages() {
+    final completer = Completer<List<ImageItem>>();
     openFiles(
       acceptedTypeGroups: const [
         XTypeGroup(

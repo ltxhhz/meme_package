@@ -18,11 +18,11 @@ import './image.dart';
       parentColumns: [
         'iid'
       ],
-      entity: ImageItem,
+      entity: ImageEntity,
     )
   ],
 )
-class Tag {
+class TagEntity {
   @PrimaryKey(autoGenerate: true)
   final int? tid;
 
@@ -30,7 +30,7 @@ class Tag {
 
   final int iid;
 
-  Tag({
+  TagEntity({
     this.tid,
     required this.iid,
     required this.name,

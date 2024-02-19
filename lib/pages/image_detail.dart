@@ -26,7 +26,7 @@ class ImageDetailPage extends StatelessWidget {
         child: ChangeNotifierProvider.value(
           value: Config.meme,
           builder: (context, child) {
-            return Selector<Meme, Item>(
+            return Selector<Meme, ImageItem>(
               builder: (context, value, child) => Column(
                 children: [
                   SizedBox(

@@ -1,7 +1,7 @@
 import 'package:floor/floor.dart';
 
 @Entity(tableName: 'groups')
-class Groups {
+class GroupEntity {
   @PrimaryKey(autoGenerate: true)
   int? gid;
 
@@ -11,7 +11,7 @@ class Groups {
 
   String uuid;
 
-  Groups({
+  GroupEntity({
     this.gid,
     required this.label,
     required this.sequence,

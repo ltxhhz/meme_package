@@ -9,7 +9,7 @@ import 'package:path/path.dart';
 
 import '../config.dart';
 
-class Item extends ChangeNotifier {
+class ImageItem extends ChangeNotifier {
   late File file;
   late String hash;
   late int iid;
@@ -28,7 +28,7 @@ class Item extends ChangeNotifier {
     Config.db.imageDao.updateImage(imageEntity);
   }
 
-  ImageItem get imageEntity => ImageItem(
+  ImageEntity get imageEntity => ImageEntity(
         iid: iid,
         hash: hash,
         filename: filename,
@@ -39,7 +39,7 @@ class Item extends ChangeNotifier {
         content: _content,
       );
 
-  Item({
+  ImageItem({
     String? hash,
     required this.groupUuid,
     required this.gid,

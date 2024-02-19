@@ -4,17 +4,17 @@ import '../entities/tag.dart';
 @dao
 abstract class TagDao {
   @insert
-  Future<int> addTag(Tag tag);
+  Future<int> addTag(TagEntity tag);
 
   @delete
-  Future<int> removeTag(Tag tag);
+  Future<int> removeTag(TagEntity tag);
 
   @update
-  Future<int> updateTag(Tag tag);
+  Future<int> updateTag(TagEntity tag);
 
   @Query("select * from tags where tid=:tid")
-  Future<List<Tag>> getTag(int tid);
+  Future<List<TagEntity>> getTag(int tid);
 
   @Query("select * from tags where iid=:iid")
-  Future<List<Tag>> getTagByIid(int iid);
+  Future<List<TagEntity>> getTagByIid(int iid);
 }

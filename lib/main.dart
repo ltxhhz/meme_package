@@ -37,7 +37,6 @@ class MyApp extends StatelessWidget {
               ],
             ),
             onGenerateRoute: onGenerateRoute,
-            initialRoute: '/home',
             locale: const Locale('zh', 'CN'),
             localizationsDelegates: const [
               GlobalCupertinoLocalizations.delegate,

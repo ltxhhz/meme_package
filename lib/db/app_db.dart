@@ -17,9 +17,9 @@ part 'app_db.g.dart';
   DateTimeConverter
 ])
 @Database(version: 1, entities: [
-  Groups,
-  ImageItem,
-  Tag,
+  GroupEntity,
+  ImageEntity,
+  TagEntity,
 ])
 abstract class AppDatabase extends FloorDatabase {
   GroupDao get groupDao;

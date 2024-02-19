@@ -5,23 +5,20 @@ import 'package:meme_package/entities/image.dart';
 @dao
 abstract class GroupDao {
   @insert
-  Future<int> addGroup(Groups group);
+  Future<int> addGroup(GroupEntity group);
 
   @delete
-  Future<int> removeImage(ImageItem imageItem);
+  Future<int> removeImage(ImageEntity imageItem);
 
   @delete
-  Future<int> removeImages(List<ImageItem> imageItem);
+  Future<int> removeImages(List<ImageEntity> imageItem);
 
   @delete
-  Future<int> removeGroup(Groups group);
+  Future<int> removeGroup(GroupEntity group);
 
   @Query('SELECT * FROM "groups"')
-  Future<List<Groups>> getAllGroups();
+  Future<List<GroupEntity>> getAllGroups();
 
   @Query('SELECT * FROM images where gid=:gid')
-  Future<List<ImageItem>> getAllImages(int gid);
-
-  @Query('SELECT MAX(sequence) FROM groups;')
-  Future<int?> getMaxSequence();
+  Future<List<ImageEntity>> getAllImages(int gid);
 }

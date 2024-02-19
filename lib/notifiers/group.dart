@@ -9,7 +9,7 @@ import 'package:path/path.dart';
 import '../config.dart';
 import '../utils.dart';
 
-class Group extends ChangeNotifier {
+class GroupItem extends ChangeNotifier {
   late String uuid;
   late int sequence;
   late String _title;
@@ -21,15 +21,15 @@ class Group extends ChangeNotifier {
   }
 
   late int gid;
-  List<Item> _items = [];
-  List<Item> get items => _items;
+  List<ImageItem> _items = [];
+  List<ImageItem> get items => _items;
 
-  set items(List<Item> e) {
+  set items(List<ImageItem> e) {
     _items = e;
     notifyListeners();
   }
 
-  Group({
+  GroupItem({
     required String label,
     required this.sequence,
     required this.gid,
@@ -39,7 +39,7 @@ class Group extends ChangeNotifier {
     title = label;
   }
 
-  Group.create({
+  GroupItem.create({
     required String title,
     required this.sequence,
   }) {
@@ -49,7 +49,7 @@ class Group extends ChangeNotifier {
 
   Future<void> getOwnImages() async {
     final imgs = await Config.db.groupDao.getAllImages(gid);
-    _items.addAll(imgs.map((e) => Item(
+    _items.addAll(imgs.map((e) => ImageItem(
           groupUuid: uuid,
           hash: e.hash,
           gid: gid,
@@ -63,21 +63,21 @@ class Group extends ChangeNotifier {
     notifyListeners();
   }
 
-  Item getImageById(int id) {
+  ImageItem getImageById(int id) {
     return _items.firstWhere((img) => img.iid == id);
   }
 
-  Future<List<Item>> addImages(List<File> imgs) async {
-    final List<ImageItem> imgItems = [];
-    final List<Item> existItems = [];
+  Future<List<ImageItem>> addImages(List<File> imgs) async {
+    final List<ImageEntity> imgItems = [];
+    final List<ImageItem> existItems = [];
     final List<Function> cb = [];
-    int seq = await Config.db.imageDao.getMaxSequence() ?? 0;
+    int seq = _items.length;
     for (var img in imgs) {
       final imgSavePath = join(Config.dataPath.path, uuid, basename(img.path));
       Directory(imgSavePath).parent.createSync(recursive: true);
       img.copySync(imgSavePath);
       img.deleteSync();
-      final item = Item(groupUuid: uuid, gid: gid, filename: basename(img.path), sequence: ++seq);
+      final item = ImageItem(groupUuid: uuid, gid: gid, filename: basename(img.path), sequence: ++seq);
       await item.calcMD5();
       final exi = Config.meme.findByHash(item.hash);
       if (exi != null) {
@@ -87,7 +87,7 @@ class Group extends ChangeNotifier {
         cb.add((int iid) {
           item.iid = iid;
         });
-        imgItems.add(ImageItem(
+        imgItems.add(ImageEntity(
           hash: item.hash,
           filename: basename(item.file.path),
           gid: gid,
@@ -106,7 +106,7 @@ class Group extends ChangeNotifier {
     return existItems;
   }
 
-  Future<void> removeImage(Item item) {
+  Future<void> removeImage(ImageItem item) {
     return Config.db.groupDao.removeImage(item.imageEntity).then((value) {
       _items.remove(item);
       notifyListeners();

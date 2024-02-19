@@ -30,7 +30,7 @@ class Utils {
           );
   }
 
-  static String get uuid => Uuid().v4().replaceAll('-', '');
+  static String get uuid => const Uuid().v4().replaceAll('-', '');
 
   static bool isWebpDynamic(File webpFile) {
     var vp8x = webpFile.readAsBytesSync().sublist(12, 16);
@@ -54,21 +54,21 @@ List<FutureOr<EncodedData>> getImgFormats(File file) {
       final fileData = file.readAsBytesSync();
       items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));
       items.add(Formats.webp(fileData));
-      if (Utils.isWebpDynamic(file)) {
-        Utils.logger.i('dynamic webp');
-        final ff = File(path.join(Config.tempDir.path, '${path.basenameWithoutExtension(file.path)}.gif'));
-        final webp = img.decodeWebP(fileData)!;
-        Utils.logger.i(webp.frames.length);
-        // ff.writeAsBytesSync(img.encodeGif(webp));
-        // items.add(Formats.gif(ff.readAsBytesSync()));
-        // items.add(Formats.htmlText("<img src=\"file://${file.uri.path}.gif\" />"));
-      } else {
-        Utils.logger.i('static webp');
-        final webp = img.decodeWebP(fileData)!;
-        Utils.logger.i(webp.frames.length);
-        // items.add(Formats.png(img.encodePng(img.decodeWebP(fileData)!)));
-        // items.add(Formats.htmlText("<img src=\"file://${file.uri.path}.png\" />"));
-      }
+      // if (Utils.isWebpDynamic(file)) {
+      //   Utils.logger.i('dynamic webp');
+      //   final ff = File(path.join(Config.tempDir.path, '${path.basenameWithoutExtension(file.path)}.gif'));
+      //   final webp = img.decodeWebP(fileData)!;
+      //   Utils.logger.i(webp.frames.length);
+      //   // ff.writeAsBytesSync(img.encodeGif(webp));
+      //   // items.add(Formats.gif(ff.readAsBytesSync()));
+      //   // items.add(Formats.htmlText("<img src=\"file://${file.uri.path}.gif\" />"));
+      // } else {
+      //   Utils.logger.i('static webp');
+      //   final webp = img.decodeWebP(fileData)!;
+      //   Utils.logger.i(webp.frames.length);
+      //   // items.add(Formats.png(img.encodePng(img.decodeWebP(fileData)!)));
+      //   // items.add(Formats.htmlText("<img src=\"file://${file.uri.path}.png\" />"));
+      // }
       break;
     case 'image/bmp':
       items.add(Formats.htmlText("<img src=\"file://${file.uri.path}\" />"));

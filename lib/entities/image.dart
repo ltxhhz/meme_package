@@ -19,11 +19,11 @@ import './group.dart';
       parentColumns: [
         'gid'
       ],
-      entity: Groups,
+      entity: GroupEntity,
     )
   ],
 )
-class ImageItem {
+class ImageEntity {
   @PrimaryKey(autoGenerate: true)
   int? iid;
   final String hash;
@@ -40,7 +40,7 @@ class ImageItem {
 
   final String content;
 
-  ImageItem({
+  ImageEntity({
     this.iid,
     required this.hash,
     required this.filename,
@@ -52,7 +52,7 @@ class ImageItem {
   });
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ImageItem && runtimeType == other.runtimeType && iid == other.iid && hash == other.hash && gid == other.gid && filename == other.filename && sequence == other.sequence && mime == other.mime && content == other.content;
+  bool operator ==(Object other) => identical(this, other) || other is ImageEntity && runtimeType == other.runtimeType && iid == other.iid && hash == other.hash && gid == other.gid && filename == other.filename && sequence == other.sequence && mime == other.mime && content == other.content;
 
   @override
   int get hashCode => iid.hashCode ^ hash.hashCode ^ gid.hashCode ^ time.hashCode ^ mime.hashCode;

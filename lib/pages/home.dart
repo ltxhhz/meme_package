@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meme_package/components/search_bar_delegate.dart';
 import 'package:meme_package/components/tab_page.dart';
 import 'package:meme_package/router/routes/converter.dart';
+import 'package:meme_package/router/routes/test.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -41,6 +42,12 @@ class Home extends StatelessWidget {
               onTap: () {
                 Navigator.pushNamed(context, ConverterRoute.name);
               },
+            ),
+            ListTile(
+              title: const Text('test'),
+              onTap: () {
+                Navigator.pushNamed(context, TestRoute.name);
+              },
             )
           ],
         ),
@@ -58,7 +65,7 @@ class Home extends StatelessWidget {
             ),
             const Expanded(
               child: TabPage(),
-            )
+            ),
           ],
         ),
       ),

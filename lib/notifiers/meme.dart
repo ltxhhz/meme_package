@@ -6,51 +6,54 @@ import 'package:meme_package/config.dart';
 import 'package:meme_package/entities/group.dart';
 import 'package:meme_package/notifiers/group.dart';
 import 'package:meme_package/notifiers/image.dart';
+import 'package:meme_package/utils.dart';
 
 class Meme extends ChangeNotifier {
-  late List<Group> _groups;
-  List<Group> get groups => _groups;
+  late List<GroupItem> _groups;
+  List<GroupItem> get groups => _groups;
 
-  set groups(List<Group> e) {
+  set groups(List<GroupItem> e) {
     _groups = e;
     notifyListeners();
   }
 
   void addGroup({required String title}) {
     // _groups.add(Group.create(title: title));
-    Config.db.groupDao.getMaxSequence().then((value) {
-      final g = Group.create(title: title, sequence: (value ?? 0) + 1);
-      Config.db.groupDao
-          .addGroup(Groups(
-        label: g.title,
-        sequence: g.sequence,
-        uuid: g.uuid,
-      ))
-          .then((value) {
-        g.gid = value;
-        _groups.add(g);
-        notifyListeners();
-      });
+    final g = GroupItem.create(title: title, sequence: _groups.length + 1);
+    Config.db.groupDao
+        .addGroup(GroupEntity(
+      label: g.title,
+      sequence: g.sequence,
+      uuid: g.uuid,
+    ))
+        .then((value) {
+      g.gid = value;
+      _groups.add(g);
+      notifyListeners();
     });
   }
 
-  void removeGroup(Group group) {
+  void removeGroup(GroupItem group) {
     Config.db.groupDao
-        .removeGroup(Groups(
+        .removeGroup(GroupEntity(
       gid: group.gid,
       label: group.title,
       sequence: group.sequence,
       uuid: group.uuid,
     ))
         .then((value) {
-      _groups.removeWhere((e) => e.gid == group.gid);
-      _groups.forEach((e) {
-        if (e.sequence > group.sequence) {
-          e.sequence--;
-        }
-      });
-      print(_groups);
-      notifyListeners();
+      if (_groups.remove(group)) {
+        // _groups.removeWhere((e) => e.gid == group.gid);
+        _groups.forEach((e) {
+          if (e.sequence > group.sequence) {
+            e.sequence--;
+          }
+        });
+        print(_groups);
+        notifyListeners();
+      } else {
+        Utils.logger.w('删除组失败');
+      }
     });
   }
 
@@ -66,9 +69,9 @@ class Meme extends ChangeNotifier {
     notifyListeners();
   }
 
-  Meme([List<Groups>? g]) {
+  Meme([List<GroupEntity>? g]) {
     groups = (g ?? [])
-        .map((e) => Group(
+        .map((e) => GroupItem(
               gid: e.gid!,
               label: e.label,
               sequence: e.sequence,
@@ -77,7 +80,7 @@ class Meme extends ChangeNotifier {
         .toList();
   }
 
-  Item? findByHash(String hash) {
+  ImageItem? findByHash(String hash) {
     for (var i = 0; i < _groups.length; i++) {
       final group = _groups[i];
       try {
