@@ -93,6 +93,14 @@ class Meme extends ChangeNotifier {
     return null;
   }
 
+  void updateItemsSrc() {
+    for (var group in _groups) {
+      for (var item in group.items) {
+        item.updateFile();
+      }
+    }
+  }
+
   @override
   String toString() {
     return jsonEncode({

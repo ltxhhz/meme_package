@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meme_package/router/routes/image_detail.dart';
+import 'package:meme_package/router/routes/setting.dart';
 import 'package:meme_package/utils.dart';
 
 import 'routes/home.dart';
@@ -18,6 +19,8 @@ Route<dynamic>? onGenerateRoute(RouteSettings settings) {
       return ImageDetailRoute.getRoute(args as ImageDetailRouteArg);
     case TestRoute.name:
       return TestRoute.getRoute();
+    case SettingRoute.name:
+      return SettingRoute.getRoute();
     default:
       return HomeRoute.getRoute();
   }

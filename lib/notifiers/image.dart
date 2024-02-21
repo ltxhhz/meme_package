@@ -78,6 +78,11 @@ class ImageItem extends ChangeNotifier {
     time = DateTime.now();
   }
 
+  void updateFile() {
+    file = File(join(Config.dataPath.path, groupUuid, filename));
+    notifyListeners();
+  }
+
   Future<void> calcMD5() async {
     hash = md5.convert(file.readAsBytesSync()).toString();
   }

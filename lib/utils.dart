@@ -36,6 +36,25 @@ class Utils {
     var vp8x = webpFile.readAsBytesSync().sublist(12, 16);
     return vp8x[0] == 0x56 && vp8x[1] == 0x50 && vp8x[2] == 0x38 && vp8x[3] == 0x58;
   }
+
+  /// 递归移动文件夹
+  /// [sourceDirectory] 源文件夹
+  /// [targetDirectory] 目标文件夹
+  ///
+  static Future<void> moveFolder(Directory sourceDirectory, Directory targetDirectory) async {
+    targetDirectory.createSync(recursive: true);
+    for (var entity in sourceDirectory.listSync()) {
+      logger.d('move entity: ${entity.path}');
+      if (entity is File) {
+        final targetFile = File(path.join(targetDirectory.path, entity.uri.pathSegments.last));
+        entity.copySync(targetFile.path);
+      } else if (entity is Directory) {
+        await moveFolder(entity, Directory(path.join(targetDirectory.path, entity.uri.pathSegments.lastWhere((e) => e.isNotEmpty))));
+      } else {
+        logger.w('${entity.path} is not a file or directory');
+      }
+    }
+  }
 }
 
 List<FutureOr<EncodedData>> getImgFormats(File file) {

@@ -265,7 +265,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
                                               ),
                                         selector: (p0, p1) => Tuple2(p1.content, p1.file),
                                       ),
-                                    ), //
+                                    ),
                                     onTap: () {
                                       print('tap');
                                       Navigator.pushNamed(

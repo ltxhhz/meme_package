@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meme_package/components/search_bar_delegate.dart';
 import 'package:meme_package/components/tab_page.dart';
 import 'package:meme_package/router/routes/converter.dart';
+import 'package:meme_package/router/routes/setting.dart';
 import 'package:meme_package/router/routes/test.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -36,17 +37,27 @@ class Home extends StatelessWidget {
       drawer: Drawer(
         child: Column(
           children: [
-            const UserAccountsDrawerHeader(accountName: Text('accountName'), accountEmail: Text('accountEmail')),
-            ListTile(
-              title: const Text('类型转换'),
-              onTap: () {
-                Navigator.pushNamed(context, ConverterRoute.name);
-              },
+            Column(
+              children: [
+                const UserAccountsDrawerHeader(accountName: Text('accountName'), accountEmail: Text('accountEmail')),
+                ListTile(
+                  title: const Text('类型转换'),
+                  onTap: () {
+                    Navigator.pushNamed(context, ConverterRoute.name);
+                  },
+                ),
+                ListTile(
+                  title: const Text('test'),
+                  onTap: () {
+                    Navigator.pushNamed(context, TestRoute.name);
+                  },
+                )
+              ],
             ),
             ListTile(
-              title: const Text('test'),
+              title: const Text('设置'),
               onTap: () {
-                Navigator.pushNamed(context, TestRoute.name);
+                Navigator.pushNamed(context, SettingRoute.name);
               },
             )
           ],
