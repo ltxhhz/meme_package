@@ -35,6 +35,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteA
   TabController? _tabController;
   HotKey? _hotKey;
   AppLifecycleListener? _listener;
+  bool _leavePage = false;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteA
       // onShow: () => Utils.logger.i('show'),
       onResume: () {
         // Utils.logger.i('resume');
+        if (_leavePage) return;
         _hotKey?.dispose().then((value) {
           _registerPasteHotKey();
         });
@@ -51,6 +53,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteA
       // onHide: () => Utils.logger.i('hide'),
       onInactive: () {
         // Utils.logger.i('inactive');
+        if (_leavePage) return;
         _hotKey?.dispose();
       },
       // onPause: () => Utils.logger.i('pause'),
@@ -79,6 +82,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteA
     // Utils.logger.i('did pop next');
     super.didPopNext();
     _registerPasteHotKey();
+    _leavePage = false;
   }
 
   @override
@@ -86,6 +90,7 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteA
     // Utils.logger.i('did push next');
     super.didPushNext();
     _hotKey?.dispose();
+    _leavePage = true;
   }
 
   @override
