@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:floor/floor.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:meme_package/db/app_db.dart';
 import 'package:meme_package/notifiers/converter_task.dart';
 import 'package:meme_package/notifiers/meme.dart';
@@ -22,6 +23,7 @@ class Config {
   static bool keepLog = true;
   static const bool isDebug = kDebugMode;
   static final List<String> logs = [];
+  static final RouteObserver<PageRoute> routeObserver = RouteObserver();
 
   static init() async {
     supportDir = await getApplicationSupportDirectory();

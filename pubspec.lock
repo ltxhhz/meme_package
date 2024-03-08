@@ -353,6 +353,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.4.2"
+  fluent_ui:
+    dependency: "direct main"
+    description:
+      name: fluent_ui
+      sha256: "432615c5b0cff4c3a162c94efc7f563ba783de447f6c6fbcaf7546dfab2fcb0a"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.8.6"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -653,6 +661,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.8.0"
+  math_expressions:
+    dependency: transitive
+    description:
+      name: math_expressions
+      sha256: "3576593617c3870d75728a751f6ec6e606706d44e363f088ac394b5a28a98064"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.4.0"
   meta:
     dependency: transitive
     description:
@@ -853,6 +869,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.2.3"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.1.0"
   rotated_corner_decoration:
     dependency: "direct main"
     description:
@@ -861,6 +885,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.0+1"
+  scroll_pos:
+    dependency: transitive
+    description:
+      name: scroll_pos
+      sha256: cebf602b2dd939de6832bb902ffefb574608d1b84f420b82b381a4007d3c1e1b
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.5.0"
   shelf:
     dependency: transitive
     description:
@@ -1023,6 +1055,22 @@ packages:
     description:
       name: super_drag_and_drop
       sha256: a4e32cecd293b51fb4831bbb541ee45e4a2dea14f88991eb7fe10271f4a779c5
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.8.5"
+  super_hot_key:
+    dependency: "direct main"
+    description:
+      name: super_hot_key
+      sha256: "710a72bb99eaca79032a0d715aa8e8040d420b645a436b0805c9e2c355b0abbe"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.8.5"
+  super_keyboard_layout:
+    dependency: transitive
+    description:
+      name: super_keyboard_layout
+      sha256: a7e54a31b3c5490498a20cd5620faee25c9ee1689d99ba4151b2991b37aaf917
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.8.5"

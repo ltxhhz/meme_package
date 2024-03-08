@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       child: ScreenUtilInit(
         designSize: PlatformUtils.isMobile ? const Size(360, 690) : const Size(690, 360),
         minTextAdapt: true,
-        splitScreenMode: true,
+        // splitScreenMode: true,
         builder: (context, child) {
           return MaterialApp(
             title: 'Flutter Demo',
@@ -35,8 +35,17 @@ class MyApp extends StatelessWidget {
               fontFamilyFallback: const [
                 'SourceHanSans'
               ],
+              textTheme: TextTheme(
+                // displayMedium: TextStyle(fontSize: 30.sp),
+                // bodySmall: TextStyle(fontSize: 10.sp),
+                bodyMedium: TextStyle(fontSize: 12.sp),
+                // bodyLarge: TextStyle(fontSize: 20.sp),
+              ),
             ),
             onGenerateRoute: onGenerateRoute,
+            navigatorObservers: [
+              Config.routeObserver,
+            ],
             locale: const Locale('zh', 'CN'),
             localizationsDelegates: const [
               GlobalCupertinoLocalizations.delegate,
@@ -48,7 +57,7 @@ class MyApp extends StatelessWidget {
             ],
           );
         },
-        child: const Home(),
+        // child: const Home(),
       ),
     );
   }

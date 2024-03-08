@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:meme_package/components/drop_region.dart';
 import 'package:meme_package/config.dart';
@@ -17,6 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:rotated_corner_decoration/rotated_corner_decoration.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
+import 'package:super_hot_key/super_hot_key.dart';
 import 'package:tuple/tuple.dart';
 
 import '../router/routes/converter.dart';
@@ -29,23 +31,65 @@ class TabPage extends StatefulWidget {
   createState() => _TabPageState();
 }
 
-class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
+class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteAware {
   TabController? _tabController;
+  HotKey? _hotKey;
+  AppLifecycleListener? _listener;
 
   @override
   void initState() {
     super.initState();
+    _registerPasteHotKey();
+    _listener = AppLifecycleListener(
+      // onShow: () => Utils.logger.i('show'),
+      onResume: () {
+        // Utils.logger.i('resume');
+        _hotKey?.dispose().then((value) {
+          _registerPasteHotKey();
+        });
+      },
+      // onHide: () => Utils.logger.i('hide'),
+      onInactive: () {
+        // Utils.logger.i('inactive');
+        _hotKey?.dispose();
+      },
+      // onPause: () => Utils.logger.i('pause'),
+      // onDetach: () => Utils.logger.i('detach'),
+      // onRestart: () => Utils.logger.i('restart'),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    Config.routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
   }
 
   @override
   void dispose() {
     super.dispose();
     _tabController?.dispose();
+    _hotKey?.dispose();
+    _listener?.dispose();
+    Config.routeObserver.unsubscribe(this);
+  }
+
+  @override
+  void didPopNext() {
+    // Utils.logger.i('did pop next');
+    super.didPopNext();
+    _registerPasteHotKey();
+  }
+
+  @override
+  void didPushNext() {
+    // Utils.logger.i('did push next');
+    super.didPushNext();
+    _hotKey?.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print('build');
     return ChangeNotifierProvider.value(
       value: Config.meme,
       builder: (context, child) {
@@ -76,7 +120,6 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
           _tabController!.dispose();
           _tabController = TabController(initialIndex: i, length: groups.length, vsync: this);
         }
-        print('build1');
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -469,5 +512,17 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin {
       },
     );
     return completer.future;
+  }
+
+  Future<void> _registerPasteHotKey() async {
+    _hotKey = await HotKey.create(
+      definition: HotKeyDefinition(
+        key: PhysicalKeyboardKey.keyV,
+        control: true,
+      ),
+      onPressed: () {
+        print('hot key pressed');
+      },
+    );
   }
 }

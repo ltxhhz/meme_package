@@ -66,6 +66,8 @@ dependencies:
   flutter_tagging_plus: ^4.0.2
   simple_tags: ^0.0.6
   flutter_settings_ui: ^3.0.0
+  super_hot_key: ^0.8.5
+  fluent_ui: ^4.8.6
 
 dev_dependencies:
   flutter_test:
