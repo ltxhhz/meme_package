@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:meme_package/entities/image.dart';
-import 'package:meme_package/notifiers/image.dart';
 import 'package:path/path.dart';
 
+import '../notifiers/image.dart';
+import '../entities/image.dart';
+import '../utils/recognize_text.dart';
 import '../config.dart';
 import '../utils.dart';
 
 class GroupItem extends ChangeNotifier {
-  late String uuid;
   late int sequence;
   late String _title;
   String get title => _title;
@@ -33,9 +33,7 @@ class GroupItem extends ChangeNotifier {
     required String label,
     required this.sequence,
     required this.gid,
-    String? uuid,
   }) {
-    this.uuid = uuid ?? Utils.uuid;
     title = label;
   }
 
@@ -44,13 +42,11 @@ class GroupItem extends ChangeNotifier {
     required this.sequence,
   }) {
     this.title = title;
-    uuid = Utils.uuid;
   }
 
   Future<void> getOwnImages() async {
     final imgs = await Config.db.groupDao.getAllImages(gid);
     _items.addAll(imgs.map((e) => ImageItem(
-          groupUuid: uuid,
           hash: e.hash,
           gid: gid,
           filename: e.filename,
@@ -67,17 +63,17 @@ class GroupItem extends ChangeNotifier {
     return _items.firstWhere((img) => img.iid == id);
   }
 
-  Future<List<ImageItem>> addImages(List<File> imgs) async {
+  Future<List<ImageItem>> addImages(List<File> imgs, {bool del = false}) async {
     final List<ImageEntity> imgItems = [];
     final List<ImageItem> existItems = [];
     final List<Function> cb = [];
     int seq = _items.length;
     for (var img in imgs) {
-      final imgSavePath = join(Config.dataPath.path, uuid, basename(img.path));
+      final imgSavePath = join(Config.dataPath.path, gid.toString(), basename(img.path));
       Directory(imgSavePath).parent.createSync(recursive: true);
       img.copySync(imgSavePath);
-      img.deleteSync();
-      final item = ImageItem(groupUuid: uuid, gid: gid, filename: basename(img.path), sequence: ++seq);
+      if (del) img.deleteSync();
+      final item = ImageItem(gid: gid, filename: basename(img.path), sequence: ++seq);
       await item.calcMD5();
       final exi = Config.meme.findByHash(item.hash);
       if (exi != null) {
@@ -86,6 +82,11 @@ class GroupItem extends ChangeNotifier {
         _items.add(item);
         cb.add((int iid) {
           item.iid = iid;
+          recognizeText(item.file).then((text) {
+            item.content = text;
+          }, onError: (e) {
+            Utils.logger.e(e);
+          });
         });
         imgItems.add(ImageEntity(
           hash: item.hash,
@@ -107,7 +108,7 @@ class GroupItem extends ChangeNotifier {
   }
 
   Future<void> removeImage(ImageItem item) {
-    return Config.db.groupDao.removeImage(item.imageEntity).then((value) {
+    return Config.db.imageDao.removeImage(item.imageEntity).then((value) {
       _items.remove(item);
       notifyListeners();
     });
@@ -117,7 +118,6 @@ class GroupItem extends ChangeNotifier {
   String toString() {
     return jsonEncode({
       'gid': gid,
-      'uuid': uuid,
       'title': title,
       'items': _items,
       'sequence': sequence,
@@ -127,7 +127,6 @@ class GroupItem extends ChangeNotifier {
   Map toJson() {
     return {
       'gid': gid,
-      'uuid': uuid,
       'title': title,
       'items': _items,
       'sequence': sequence,

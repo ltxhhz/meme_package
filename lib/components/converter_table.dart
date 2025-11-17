@@ -5,11 +5,13 @@ import 'package:meme_package/config.dart';
 import 'package:meme_package/notifiers/converter_task.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
+import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../router/routes/converter.dart';
+import '../utils.dart';
 
 late ConverterRouteArg? _arg;
 
@@ -83,7 +85,7 @@ class ConverterTable extends StatelessWidget {
                 } else {
                   // return Text('${value.item2 * 100}%');
                   return Center(
-                    child: LoadingAnimationWidget.prograssiveDots(color: Theme.of(context).primaryColor, size: 10.sp),
+                    child: LoadingAnimationWidget.waveDots(color: Theme.of(context).primaryColor, size: 10.sp),
                   );
                 }
               },
@@ -99,7 +101,6 @@ class ConverterTable extends StatelessWidget {
   ContextMenuWidget _buildMenu(
     ConverterTask converterTask, {
     bool isSource = false,
-    Widget? child,
   }) {
     return ContextMenuWidget(
       child: TableRowInkWell(
@@ -116,21 +117,50 @@ class ConverterTable extends StatelessWidget {
         children: [
           MenuAction(
             title: '复制路径',
-            callback: () {},
+            callback: () {
+              final item = DataWriterItem();
+              item.add(Formats.plainText(isSource ? converterTask.source.path : converterTask.target.path));
+              if (SystemClipboard.instance != null) {
+                SystemClipboard.instance!.write([
+                  item
+                ]).then((value) {
+                  showToast('已复制');
+                });
+              } else {
+                showToast('当前平台不支持');
+              }
+            },
           ),
           MenuAction(
             title: '复制图片',
-            callback: () {},
+            callback: () {
+              final item = DataWriterItem();
+              getImgFormats(isSource ? converterTask.source : converterTask.target).forEach(item.add);
+
+              if (SystemClipboard.instance != null) {
+                SystemClipboard.instance!.write([
+                  item
+                ]).then((value) {
+                  showToast('已复制');
+                });
+              } else {
+                showToast('当前平台不支持');
+              }
+            },
           ),
           MenuAction(
             title: '另存为',
-            callback: () {},
+            callback: () {
+              showToast('todo');
+            },
           ),
           if (_arg?.internal == true && !isSource)
             MenuAction(
               title: '替换原图',
               callback: () {
-                Config.meme.updateItem(guuid: _arg!.guuid!, hash: _arg!.hash!, file: converterTask.target).then((e) {
+                // final img = Config.meme.groups.firstWhere((e) => e.gid == _arg!.gid).items.firstWhere((e) => e.hash == _arg!.hash);
+                // img.update(newFile: converterTask.target)
+                Config.meme.updateItem(gid: _arg!.gid!, hash: _arg!.hash!, file: converterTask.target).then((e) {
                   showToast('success');
                 });
               },

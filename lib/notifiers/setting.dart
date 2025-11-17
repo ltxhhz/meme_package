@@ -10,7 +10,7 @@ class Setting extends ChangeNotifier {
     notifyListeners();
   }
 
-  updateDataPath() {
+  void updateDataPath() {
     _dataPath = _dataPathNew;
     notifyListeners();
   }

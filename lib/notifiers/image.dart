@@ -14,7 +14,6 @@ class ImageItem extends ChangeNotifier {
   late String hash;
   late int iid;
   int gid;
-  String groupUuid;
   String filename;
   late DateTime time;
   int sequence;
@@ -41,7 +40,6 @@ class ImageItem extends ChangeNotifier {
 
   ImageItem({
     String? hash,
-    required this.groupUuid,
     required this.gid,
     required this.filename,
     DateTime? time,
@@ -50,7 +48,7 @@ class ImageItem extends ChangeNotifier {
     String? mime,
     String content = '',
   }) {
-    file = File(join(Config.dataPath.path, groupUuid, filename));
+    file = File(join(Config.dataPath.path, gid.toString(), filename));
     if (hash != null) {
       this.hash = hash;
     }
@@ -66,6 +64,18 @@ class ImageItem extends ChangeNotifier {
     }
   }
 
+  ImageItem.fromEntity(ImageEntity entity)
+      : filename = entity.filename,
+        gid = entity.gid,
+        sequence = entity.sequence,
+        hash = entity.hash,
+        iid = entity.iid!,
+        time = entity.time,
+        mime = entity.mime,
+        _content = entity.content {
+    file = File(join(Config.dataPath.path, gid.toString(), filename));
+  }
+
   Future<void> update({
     required File newFile,
   }) async {
@@ -76,10 +86,11 @@ class ImageItem extends ChangeNotifier {
     newFile.deleteSync();
     await calcMD5();
     time = DateTime.now();
+    notifyListeners();
   }
 
-  void updateFile() {
-    file = File(join(Config.dataPath.path, groupUuid, filename));
+  void refreshFile() {
+    file = File(join(Config.dataPath.path, gid.toString(), filename));
     notifyListeners();
   }
 
@@ -92,7 +103,6 @@ class ImageItem extends ChangeNotifier {
     return jsonEncode({
       'path': file.path,
       'hash': hash,
-      'uuid': groupUuid,
       'filename': filename,
     });
   }
@@ -101,7 +111,6 @@ class ImageItem extends ChangeNotifier {
     return {
       'path': file.path,
       'hash': hash,
-      'uuid': groupUuid,
       'filename': filename,
     };
   }

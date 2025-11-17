@@ -6,20 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:meme_package/components/drop_region.dart';
+import 'package:meme_package/components/image_grid.dart';
 import 'package:meme_package/config.dart';
 import 'package:meme_package/notifiers/group.dart';
 import 'package:meme_package/notifiers/image.dart';
 import 'package:meme_package/notifiers/meme.dart';
 import 'package:meme_package/router/routes/image_detail.dart';
-import 'package:meme_package/utils/platform_utils.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
-import 'package:rotated_corner_decoration/rotated_corner_decoration.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 import 'package:super_hot_key/super_hot_key.dart';
-import 'package:tuple/tuple.dart';
 
 import '../router/routes/converter.dart';
 import '../utils.dart';
@@ -291,149 +289,131 @@ class _TabPageState extends State<TabPage> with TickerProviderStateMixin, RouteA
                           return ChangeNotifierProvider.value(
                             value: value[index],
                             builder: (context, child) {
-                              return ContextMenuWidget(
-                                child: dragItemWidget(
-                                  context,
-                                  file: value[index].file,
-                                  child: InkWell(
-                                    child: Container(
-                                      foregroundDecoration: RotatedCornerDecoration.withColor(
-                                        color: Theme.of(context).primaryColor.withAlpha(180),
-                                        badgeSize: Size.square(20.h),
-                                        textSpan: TextSpan(
-                                          text: value[index].mime.replaceFirst('image/', ''),
-                                        ),
-                                      ),
-                                      child: Selector<ImageItem, Tuple2<String, File>>(
-                                        builder: (context, value, child) => value.item1.isEmpty
-                                            ? Image.file(value.item2)
-                                            : Tooltip(
-                                                message: value.item1,
-                                                child: Image.file(value.item2),
-                                              ),
-                                        selector: (p0, p1) => Tuple2(p1.content, p1.file),
-                                      ),
+                              return imageGrid(
+                                context,
+                                value[index],
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    ImageDetailRoute.name,
+                                    arguments: ImageDetailRouteArg(
+                                      imageId: value[index].iid,
+                                      groupId: value[index].gid,
                                     ),
-                                    onTap: () {
-                                      print('tap');
+                                  );
+                                },
+                                menuElements: [
+                                  // if (PlatformUtils.isNotMobile)
+                                  MenuAction(
+                                    title: '复制',
+                                    callback: () async {
+                                      final item = DataWriterItem();
+                                      getImgFormats(value[index].file).forEach(item.add);
+                                      if (SystemClipboard.instance != null) {
+                                        SystemClipboard.instance!.write([
+                                          item
+                                        ]).then((value) {
+                                          showToast('已复制');
+                                        });
+                                      } else {
+                                        showToast('当前平台不支持');
+                                      }
+                                    },
+                                  ),
+                                  MenuAction(
+                                    title: '添加',
+                                    callback: () {
+                                      _showAddDialog();
+                                    },
+                                  ),
+                                  MenuAction(
+                                    title: '转换格式',
+                                    callback: () {
                                       Navigator.pushNamed(
                                         context,
-                                        ImageDetailRoute.name,
-                                        arguments: ImageDetailRouteArg(
-                                          imageId: value[index].iid,
-                                          groupId: value[index].gid,
+                                        ConverterRoute.name,
+                                        arguments: ConverterRouteArg(
+                                          internal: true,
+                                          sourceFile: value[index].file,
+                                          hash: value[index].hash,
                                         ),
                                       );
                                     },
                                   ),
-                                ),
-                                menuProvider: (request) {
-                                  return Menu(children: [
-                                    if (PlatformUtils.isNotMobile)
-                                      MenuAction(
-                                        title: '复制',
-                                        callback: () async {
-                                          final item = DataWriterItem();
-                                          getImgFormats(value[index].file).forEach(item.add);
-                                          ClipboardWriter.instance.write([
-                                            item
-                                          ]).then((value) {
-                                            showToast('已复制');
-                                          });
-                                        },
-                                      ),
-                                    MenuAction(
-                                      title: '添加',
-                                      callback: () {
-                                        _showAddDialog();
-                                      },
-                                    ),
-                                    MenuAction(
-                                      title: '转换格式',
-                                      callback: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          ConverterRoute.name,
-                                          arguments: ConverterRouteArg(
-                                            internal: true,
-                                            sourceFile: value[index].file,
-                                            guuid: value[index].groupUuid,
-                                            hash: value[index].hash,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    MenuAction(
-                                      title: '设置内容',
-                                      callback: () {
-                                        final controller = TextEditingController(text: value[index].content);
-                                        NDialog(
-                                          title: const Text('设置内容'),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              TextField(
-                                                autofocus: true,
-                                                controller: controller,
-                                                decoration: const InputDecoration(
-                                                  labelText: '内容',
-                                                  hintText: '图片中的文字',
-                                                ),
-                                                onEditingComplete: () {
-                                                  final str = controller.text;
-                                                  Utils.logger.i(str);
-                                                  value[index].content = str;
-                                                  Navigator.pop(context);
-                                                },
+                                  MenuAction(
+                                    title: '设置内容',
+                                    callback: () {
+                                      final controller = TextEditingController(text: value[index].content);
+                                      NDialog(
+                                        title: const Text('设置内容'),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextField(
+                                              autofocus: true,
+                                              controller: controller,
+                                              maxLines: null,
+                                              decoration: const InputDecoration(
+                                                labelText: '内容',
+                                                hintText: '图片中的文字',
                                               ),
-                                              const SizedBox(
-                                                height: 10,
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  final str = controller.text;
-                                                  Utils.logger.i(str);
-                                                  value[index].content = str;
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('确定'),
-                                              ),
-                                            ],
-                                          ),
-                                        ).show(context).whenComplete(() {
-                                          controller.dispose();
-                                        });
-                                      },
-                                    ),
-                                    MenuAction(
-                                      title: '删除',
-                                      callback: () {
-                                        NAlertDialog(
-                                          dialogStyle: DialogStyle(titleDivider: true),
-                                          title: const Text("确定删除"),
-                                          actions: <Widget>[
-                                            TextButton(
-                                                child: const Text("确定"),
-                                                onPressed: () {
-                                                  final progressDialog = ProgressDialog(context,
-                                                      title: const Text('删除图片'),
-                                                      message: const Text(
-                                                        '正在删除',
-                                                      ))
-                                                    ..show();
-                                                  Config.meme.groups[_tabController!.index].removeImage(value[index]).then((value) {
-                                                    Navigator.pop(context);
-                                                  }).whenComplete(() {
-                                                    progressDialog.dismiss();
-                                                  });
-                                                }),
-                                            TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                              onEditingComplete: () {
+                                                final str = controller.text;
+                                                Utils.logger.i(str);
+                                                value[index].content = str;
+                                                Navigator.pop(context);
+                                              },
+                                            ),
+                                            const SizedBox(
+                                              height: 10,
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                final str = controller.text;
+                                                Utils.logger.i(str);
+                                                value[index].content = str;
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('确定'),
+                                            ),
                                           ],
-                                        ).show(context);
-                                      },
-                                    ),
-                                  ]);
-                                },
+                                        ),
+                                      ).show(context).whenComplete(() {
+                                        controller.dispose();
+                                      });
+                                    },
+                                  ),
+                                  MenuAction(
+                                    title: '删除',
+                                    callback: () {
+                                      NAlertDialog(
+                                        dialogStyle: DialogStyle(titleDivider: true),
+                                        title: const Text("确定删除"),
+                                        actions: <Widget>[
+                                          TextButton(
+                                              child: const Text("确定"),
+                                              onPressed: () {
+                                                final progressDialog = ProgressDialog(context,
+                                                    title: const Text('删除图片'),
+                                                    message: const Text(
+                                                      '正在删除',
+                                                    ))
+                                                  ..show();
+                                                Config.db.imageDao.removeImage(value[index].imageEntity).then((value) {
+                                                  showToast(value > 0 ? '删除成功' : '删除失败');
+                                                  if (context.mounted) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                }).whenComplete(() {
+                                                  progressDialog.dismiss();
+                                                });
+                                              }),
+                                          TextButton(child: const Text("取消"), onPressed: () => Navigator.pop(context)),
+                                        ],
+                                      ).show(context);
+                                    },
+                                  ),
+                                ],
                               );
                             },
                           );

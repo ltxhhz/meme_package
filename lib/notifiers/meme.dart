@@ -24,7 +24,6 @@ class Meme extends ChangeNotifier {
         .addGroup(GroupEntity(
       label: g.title,
       sequence: g.sequence,
-      uuid: g.uuid,
     ))
         .then((value) {
       g.gid = value;
@@ -39,16 +38,15 @@ class Meme extends ChangeNotifier {
       gid: group.gid,
       label: group.title,
       sequence: group.sequence,
-      uuid: group.uuid,
     ))
         .then((value) {
       if (_groups.remove(group)) {
         // _groups.removeWhere((e) => e.gid == group.gid);
-        _groups.forEach((e) {
+        for (var e in _groups) {
           if (e.sequence > group.sequence) {
             e.sequence--;
           }
-        });
+        }
         print(_groups);
         notifyListeners();
       } else {
@@ -57,16 +55,20 @@ class Meme extends ChangeNotifier {
     });
   }
 
+  Future<int> removeImage(ImageItem item) {
+    return Config.db.imageDao.removeImage(item.imageEntity);
+  }
+
   Future<void> updateItem({
-    required String guuid,
+    required int gid,
     required String hash,
     required File file,
   }) async {
-    final g = _groups.firstWhere((e) => e.uuid == guuid);
+    final g = _groups.firstWhere((e) => e.gid == gid);
     final item = g.items.firstWhere((e) => e.hash == hash);
     await item.update(newFile: file);
     Config.db.imageDao.updateImage(item.imageEntity);
-    notifyListeners();
+    // notifyListeners();
   }
 
   Meme([List<GroupEntity>? g]) {
@@ -75,7 +77,6 @@ class Meme extends ChangeNotifier {
               gid: e.gid!,
               label: e.label,
               sequence: e.sequence,
-              uuid: e.uuid,
             ))
         .toList();
   }
@@ -93,10 +94,14 @@ class Meme extends ChangeNotifier {
     return null;
   }
 
+  List<ImageItem> findByString(String str) {
+    return _groups.map((group) => group.items).expand((e) => e).where((e) => e.content.contains(str) || e.filename.contains(str)).toList();
+  }
+
   void updateItemsSrc() {
     for (var group in _groups) {
       for (var item in group.items) {
-        item.updateFile();
+        item.refreshFile();
       }
     }
   }

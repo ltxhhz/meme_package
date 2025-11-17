@@ -9,12 +9,9 @@ class GroupEntity {
 
   int sequence;
 
-  String uuid;
-
   GroupEntity({
     this.gid,
     required this.label,
     required this.sequence,
-    required this.uuid,
   });
 }

@@ -6,13 +6,12 @@ import 'package:mime/mime.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path;
-import 'package:image/image.dart' as img;
 
 import 'config.dart';
 import 'utils/log_output.dart';
 
 class Utils {
-  static init() async {}
+  static Future<void> init() async {}
 
   static Logger? _logger;
   static Logger? _logger1;
@@ -55,6 +54,10 @@ class Utils {
       }
     }
   }
+
+  // static File getImgFile(ImageEntity img) {
+  //   return File(path.join(Config.dataPath.path, img.gid.toString(), img.filename));
+  // }
 }
 
 List<FutureOr<EncodedData>> getImgFormats(File file) {

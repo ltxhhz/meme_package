@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+/// 一个用于绘制透明背景格子的CustomPainter
 class LucencyPainter extends CustomPainter {
   final double squareSize;
   LucencyPainter({

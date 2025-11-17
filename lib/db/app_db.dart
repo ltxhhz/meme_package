@@ -10,16 +10,18 @@ import '../dao/tag_dao.dart';
 import '../entities/group.dart';
 import '../entities/image.dart';
 import '../entities/tag.dart';
+import '../entities/image_tag.dart';
 
 part 'app_db.g.dart';
 
 @TypeConverters([
   DateTimeConverter
 ])
-@Database(version: 1, entities: [
+@Database(version: 2, entities: [
   GroupEntity,
   ImageEntity,
   TagEntity,
+  ImageTagEntity,
 ])
 abstract class AppDatabase extends FloorDatabase {
   GroupDao get groupDao;

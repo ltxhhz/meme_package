@@ -14,19 +14,37 @@ import 'package:tuple/tuple.dart';
 import '../config.dart';
 import '../utils.dart';
 
-class ConverterPage extends StatelessWidget {
+class ConverterPage extends StatefulWidget {
   const ConverterPage({super.key});
+  @override
+  State<ConverterPage> createState() => _ConverterPageState();
+}
+
+class _ConverterPageState extends State<ConverterPage> {
+  late final TextEditingController controller;
+  ConverterRouteArg? arg;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      arg = ModalRoute.of(context)?.settings.arguments as ConverterRouteArg?;
+      if (arg?.sourceFile != null) {
+        controller.text = arg!.sourceFile!.path;
+        Config.converterTasks.inputFile = arg!.sourceFile;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController();
-    final arg = ModalRoute.of(context)!.settings.arguments as ConverterRouteArg?;
-    if (arg != null) {
-      if (arg.sourceFile != null) {
-        controller.text = arg.sourceFile!.path;
-        Config.converterTasks.inputFile = arg.sourceFile;
-      }
-    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('格式转换'),
@@ -54,6 +72,12 @@ class ConverterPage extends StatelessWidget {
                             child: TextField(
                               decoration: const InputDecoration(label: Text('源文件（可拖动文件到此）')),
                               controller: controller,
+                              onChanged: (value) {
+                                // Utils.logger.i(value);
+                                Config.converterTasks.inputFile = File(value);
+                                // controller.text = value;
+                                Utils.logger.i(controller.text);
+                              },
                             ),
                           ),
                         ),
@@ -94,34 +118,17 @@ class ConverterPage extends StatelessWidget {
                     const Text('为'),
                     Selector<ConverterTasks, Tuple2<bool, SimpleFileFormat>>(
                       builder: (context, value, child) {
-                        if (value.item1) {
-                          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                            Config.converterTasks.targetFormat = Formats.gif;
-                          });
-                        }
-                        return DropdownButton<SimpleFileFormat>(
-                          // isDense: true,
-                          hint: const Text('选择格式'),
-                          items: [
-                            DropdownMenuItem(
-                              value: Formats.png,
-                              enabled: !value.item1,
-                              child: const Text('png'),
-                            ),
-                            DropdownMenuItem(
-                              value: Formats.jpeg,
-                              enabled: !value.item1,
-                              child: const Text('jpg'),
-                            ),
-                            const DropdownMenuItem(
-                              value: Formats.gif,
-                              child: Text('gif'),
-                            ),
-                          ],
+                        // if (value.item1) {
+                        //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                        //     Config.converterTasks.targetFormat = Formats.gif;
+                        //   });
+                        // }
+                        return DropdownMenuBtn(
                           onChanged: (value) {
                             Config.converterTasks.targetFormat = value!;
                           },
-                          value: value.item1 ? Formats.gif : value.item2,
+                          value: value.item2,
+                          isWebpDynamic: value.item1,
                         );
                       },
                       selector: (p0, p1) => Tuple2(p1.isWebpDynamic, p1.targetFormat),
@@ -141,6 +148,46 @@ class ConverterPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class DropdownMenuBtn extends StatelessWidget {
+  final void Function(SimpleFileFormat?) onChanged;
+  final SimpleFileFormat? value;
+  final bool isWebpDynamic;
+
+  const DropdownMenuBtn({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.isWebpDynamic,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<SimpleFileFormat>(
+      // isDense: true,
+      hint: const Text('选择格式'),
+      items: [
+        DropdownMenuItem(
+          value: Formats.png,
+          // enabled: !value.item1,
+          child: const Text('png'),
+        ),
+        DropdownMenuItem(
+          value: Formats.jpeg,
+          // enabled: !value.item1,
+          child: const Text('jpg'),
+        ),
+        DropdownMenuItem(
+          value: Formats.gif,
+          child: Text('gif${isWebpDynamic ? ' (原图动态)' : ''}'),
+        ),
+      ],
+      onChanged: (value) {
+        Config.converterTasks.targetFormat = value!;
+      },
+      value: value,
     );
   }
 }

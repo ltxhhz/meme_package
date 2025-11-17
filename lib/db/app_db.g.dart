@@ -6,21 +6,32 @@ part of 'app_db.dart';
 // FloorGenerator
 // **************************************************************************
 
+abstract class $AppDatabaseBuilderContract {
+  /// Adds migrations to the builder.
+  $AppDatabaseBuilderContract addMigrations(List<Migration> migrations);
+
+  /// Adds a database [Callback] to the builder.
+  $AppDatabaseBuilderContract addCallback(Callback callback);
+
+  /// Creates the database and initializes it.
+  Future<AppDatabase> build();
+}
+
 // ignore: avoid_classes_with_only_static_members
 class $FloorAppDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDatabaseBuilder databaseBuilder(String name) =>
+  static $AppDatabaseBuilderContract databaseBuilder(String name) =>
       _$AppDatabaseBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDatabaseBuilder inMemoryDatabaseBuilder() =>
+  static $AppDatabaseBuilderContract inMemoryDatabaseBuilder() =>
       _$AppDatabaseBuilder(null);
 }
 
-class _$AppDatabaseBuilder {
+class _$AppDatabaseBuilder implements $AppDatabaseBuilderContract {
   _$AppDatabaseBuilder(this.name);
 
   final String? name;
@@ -29,19 +40,19 @@ class _$AppDatabaseBuilder {
 
   Callback? _callback;
 
-  /// Adds migrations to the builder.
-  _$AppDatabaseBuilder addMigrations(List<Migration> migrations) {
+  @override
+  $AppDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
-  /// Adds a database [Callback] to the builder.
-  _$AppDatabaseBuilder addCallback(Callback callback) {
+  @override
+  $AppDatabaseBuilderContract addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
 
-  /// Creates the database and initializes it.
+  @override
   Future<AppDatabase> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
@@ -73,7 +84,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -89,15 +100,19 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `groups` (`gid` INTEGER PRIMARY KEY AUTOINCREMENT, `label` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `uuid` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `groups` (`gid` INTEGER PRIMARY KEY AUTOINCREMENT, `label` TEXT NOT NULL, `sequence` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `images` (`iid` INTEGER PRIMARY KEY AUTOINCREMENT, `hash` TEXT NOT NULL, `filename` TEXT NOT NULL, `gid` INTEGER NOT NULL, `time` INTEGER NOT NULL, `sequence` INTEGER NOT NULL, `mime` TEXT NOT NULL, `content` TEXT NOT NULL, FOREIGN KEY (`gid`) REFERENCES `groups` (`gid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `tags` (`tid` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `iid` INTEGER NOT NULL, FOREIGN KEY (`iid`) REFERENCES `images` (`iid`) ON UPDATE NO ACTION ON DELETE NO ACTION)');
+            'CREATE TABLE IF NOT EXISTS `tags` (`tid` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `image_tags` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `image_id` INTEGER NOT NULL, `tag_id` INTEGER NOT NULL, FOREIGN KEY (`image_id`) REFERENCES `images` (`iid`) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tid`) ON UPDATE NO ACTION ON DELETE CASCADE)');
         await database.execute(
             'CREATE UNIQUE INDEX `index_images_hash` ON `images` (`hash`)');
         await database
             .execute('CREATE INDEX `index_tags_name` ON `tags` (`name`)');
+        await database.execute(
+            'CREATE UNIQUE INDEX `index_image_tags_image_id_tag_id` ON `image_tags` (`image_id`, `tag_id`)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -132,22 +147,7 @@ class _$GroupDao extends GroupDao {
             (GroupEntity item) => <String, Object?>{
                   'gid': item.gid,
                   'label': item.label,
-                  'sequence': item.sequence,
-                  'uuid': item.uuid
-                }),
-        _imageEntityDeletionAdapter = DeletionAdapter(
-            database,
-            'images',
-            ['iid'],
-            (ImageEntity item) => <String, Object?>{
-                  'iid': item.iid,
-                  'hash': item.hash,
-                  'filename': item.filename,
-                  'gid': item.gid,
-                  'time': _dateTimeConverter.encode(item.time),
-                  'sequence': item.sequence,
-                  'mime': item.mime,
-                  'content': item.content
+                  'sequence': item.sequence
                 }),
         _groupEntityDeletionAdapter = DeletionAdapter(
             database,
@@ -156,8 +156,7 @@ class _$GroupDao extends GroupDao {
             (GroupEntity item) => <String, Object?>{
                   'gid': item.gid,
                   'label': item.label,
-                  'sequence': item.sequence,
-                  'uuid': item.uuid
+                  'sequence': item.sequence
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -168,8 +167,6 @@ class _$GroupDao extends GroupDao {
 
   final InsertionAdapter<GroupEntity> _groupEntityInsertionAdapter;
 
-  final DeletionAdapter<ImageEntity> _imageEntityDeletionAdapter;
-
   final DeletionAdapter<GroupEntity> _groupEntityDeletionAdapter;
 
   @override
@@ -178,8 +175,7 @@ class _$GroupDao extends GroupDao {
         mapper: (Map<String, Object?> row) => GroupEntity(
             gid: row['gid'] as int?,
             label: row['label'] as String,
-            sequence: row['sequence'] as int,
-            uuid: row['uuid'] as String));
+            sequence: row['sequence'] as int));
   }
 
   @override
@@ -204,17 +200,6 @@ class _$GroupDao extends GroupDao {
   }
 
   @override
-  Future<int> removeImage(ImageEntity imageItem) {
-    return _imageEntityDeletionAdapter.deleteAndReturnChangedRows(imageItem);
-  }
-
-  @override
-  Future<int> removeImages(List<ImageEntity> imageItem) {
-    return _imageEntityDeletionAdapter
-        .deleteListAndReturnChangedRows(imageItem);
-  }
-
-  @override
   Future<int> removeGroup(GroupEntity group) {
     return _groupEntityDeletionAdapter.deleteAndReturnChangedRows(group);
   }
@@ -224,7 +209,8 @@ class _$ImageDao extends ImageDao {
   _$ImageDao(
     this.database,
     this.changeListener,
-  )   : _imageEntityInsertionAdapter = InsertionAdapter(
+  )   : _queryAdapter = QueryAdapter(database),
+        _imageEntityInsertionAdapter = InsertionAdapter(
             database,
             'images',
             (ImageEntity item) => <String, Object?>{
@@ -250,15 +236,63 @@ class _$ImageDao extends ImageDao {
                   'sequence': item.sequence,
                   'mime': item.mime,
                   'content': item.content
+                }),
+        _imageEntityDeletionAdapter = DeletionAdapter(
+            database,
+            'images',
+            ['iid'],
+            (ImageEntity item) => <String, Object?>{
+                  'iid': item.iid,
+                  'hash': item.hash,
+                  'filename': item.filename,
+                  'gid': item.gid,
+                  'time': _dateTimeConverter.encode(item.time),
+                  'sequence': item.sequence,
+                  'mime': item.mime,
+                  'content': item.content
                 });
 
   final sqflite.DatabaseExecutor database;
 
   final StreamController<String> changeListener;
 
+  final QueryAdapter _queryAdapter;
+
   final InsertionAdapter<ImageEntity> _imageEntityInsertionAdapter;
 
   final UpdateAdapter<ImageEntity> _imageEntityUpdateAdapter;
+
+  final DeletionAdapter<ImageEntity> _imageEntityDeletionAdapter;
+
+  @override
+  Future<List<ImageEntity>> searchByContent(String content) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM images    WHERE content LIKE \'%\' || ?1 || \'%\'',
+        mapper: (Map<String, Object?> row) => ImageEntity(
+            iid: row['iid'] as int?,
+            hash: row['hash'] as String,
+            filename: row['filename'] as String,
+            gid: row['gid'] as int,
+            time: _dateTimeConverter.decode(row['time'] as int),
+            sequence: row['sequence'] as int,
+            mime: row['mime'] as String,
+            content: row['content'] as String),
+        arguments: [content]);
+  }
+
+  @override
+  Future<List<ImageEntity>> findAllImages() async {
+    return _queryAdapter.queryList('SELECT * FROM images',
+        mapper: (Map<String, Object?> row) => ImageEntity(
+            iid: row['iid'] as int?,
+            hash: row['hash'] as String,
+            filename: row['filename'] as String,
+            gid: row['gid'] as int,
+            time: _dateTimeConverter.decode(row['time'] as int),
+            sequence: row['sequence'] as int,
+            mime: row['mime'] as String,
+            content: row['content'] as String));
+  }
 
   @override
   Future<int> addImage(ImageEntity imageItem) {
@@ -277,6 +311,16 @@ class _$ImageDao extends ImageDao {
     return _imageEntityUpdateAdapter.updateAndReturnChangedRows(
         imageItem, OnConflictStrategy.abort);
   }
+
+  @override
+  Future<int> removeImage(ImageEntity imageItem) {
+    return _imageEntityDeletionAdapter.deleteAndReturnChangedRows(imageItem);
+  }
+
+  @override
+  Future<int> removeImages(List<ImageEntity> list) {
+    return _imageEntityDeletionAdapter.deleteListAndReturnChangedRows(list);
+  }
 }
 
 class _$TagDao extends TagDao {
@@ -287,29 +331,20 @@ class _$TagDao extends TagDao {
         _tagEntityInsertionAdapter = InsertionAdapter(
             database,
             'tags',
-            (TagEntity item) => <String, Object?>{
-                  'tid': item.tid,
-                  'name': item.name,
-                  'iid': item.iid
-                }),
+            (TagEntity item) =>
+                <String, Object?>{'tid': item.tid, 'name': item.name}),
         _tagEntityUpdateAdapter = UpdateAdapter(
             database,
             'tags',
             ['tid'],
-            (TagEntity item) => <String, Object?>{
-                  'tid': item.tid,
-                  'name': item.name,
-                  'iid': item.iid
-                }),
+            (TagEntity item) =>
+                <String, Object?>{'tid': item.tid, 'name': item.name}),
         _tagEntityDeletionAdapter = DeletionAdapter(
             database,
             'tags',
             ['tid'],
-            (TagEntity item) => <String, Object?>{
-                  'tid': item.tid,
-                  'name': item.name,
-                  'iid': item.iid
-                });
+            (TagEntity item) =>
+                <String, Object?>{'tid': item.tid, 'name': item.name});
 
   final sqflite.DatabaseExecutor database;
 
@@ -326,21 +361,34 @@ class _$TagDao extends TagDao {
   @override
   Future<List<TagEntity>> getTag(int tid) async {
     return _queryAdapter.queryList('select * from tags where tid=?1',
-        mapper: (Map<String, Object?> row) => TagEntity(
-            tid: row['tid'] as int?,
-            iid: row['iid'] as int,
-            name: row['name'] as String),
+        mapper: (Map<String, Object?> row) =>
+            TagEntity(tid: row['tid'] as int?, name: row['name'] as String),
         arguments: [tid]);
   }
 
   @override
-  Future<List<TagEntity>> getTagByIid(int iid) async {
-    return _queryAdapter.queryList('select * from tags where iid=?1',
-        mapper: (Map<String, Object?> row) => TagEntity(
-            tid: row['tid'] as int?,
-            iid: row['iid'] as int,
-            name: row['name'] as String),
-        arguments: [iid]);
+  Future<List<ImageEntity>> getImagesByTag(int tagId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM images    WHERE iid IN (     SELECT image_id FROM image_tags      WHERE tag_id = ?1   )',
+        mapper: (Map<String, Object?> row) => ImageEntity(iid: row['iid'] as int?, hash: row['hash'] as String, filename: row['filename'] as String, gid: row['gid'] as int, time: _dateTimeConverter.decode(row['time'] as int), sequence: row['sequence'] as int, mime: row['mime'] as String, content: row['content'] as String),
+        arguments: [tagId]);
+  }
+
+  @override
+  Future<List<TagEntity>> getTagsForImage(int imageId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM tags    WHERE tid IN (     SELECT tag_id FROM image_tags      WHERE image_id = ?1   )',
+        mapper: (Map<String, Object?> row) => TagEntity(tid: row['tid'] as int?, name: row['name'] as String),
+        arguments: [imageId]);
+  }
+
+  @override
+  Future<List<TagEntity>> searchTag(String name) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM tags    WHERE name LIKE \'%\' || ?1 || \'%\'',
+        mapper: (Map<String, Object?> row) =>
+            TagEntity(tid: row['tid'] as int?, name: row['name'] as String),
+        arguments: [name]);
   }
 
   @override

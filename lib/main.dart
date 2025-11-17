@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:meme_package/config.dart';
-import 'package:meme_package/pages/home.dart';
 import 'package:meme_package/utils.dart';
 import 'package:oktoast/oktoast.dart';
 

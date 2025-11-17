@@ -121,14 +121,16 @@ class _MyDropRegionWidgetState extends State<MyDropRegionWidget> {
                     color: Colors.grey,
                   ),
                   child: DottedBorder(
-                    strokeWidth: widget.strokeWidth,
-                    dashPattern: const [
-                      8,
-                      4
-                    ],
-                    borderType: BorderType.RRect,
-                    color: Colors.white,
-                    radius: const Radius.circular(15),
+                    options: RectDottedBorderOptions(
+                      strokeWidth: widget.strokeWidth,
+                      dashPattern: const [
+                        8,
+                        4
+                      ],
+                      color: Colors.white,
+                      // borderType: BorderType.RRect,
+                      // radius: const Radius.circular(15),
+                    ),
                     child: Center(
                       child: Text(
                         widget.tipText,

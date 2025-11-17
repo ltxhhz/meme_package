@@ -23,7 +23,12 @@ class ConverterTasks extends ChangeNotifier {
       if (mime == 'image/webp') {
         isWebpDynamic = Utils.isWebpDynamic(e);
       }
-      _inputFormat = Formats.standardFormats.firstWhere((e) => e is SimpleFileFormat && e.mimeTypes![0] == mime) as SimpleFileFormat;
+      try {
+        _inputFormat = Formats.standardFormats.firstWhere((e) => e is SimpleFileFormat && e.mimeTypes?[0] == mime) as SimpleFileFormat;
+      } catch (e) {
+        Utils.logger.w(e);
+        _inputFormat = null;
+      }
     } else {
       _inputFormat = null;
     }

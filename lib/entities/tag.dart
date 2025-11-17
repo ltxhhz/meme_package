@@ -1,5 +1,4 @@
 import 'package:floor/floor.dart';
-import './image.dart';
 
 @Entity(
   tableName: 'tags',
@@ -10,17 +9,17 @@ import './image.dart';
       ],
     )
   ],
-  foreignKeys: [
-    ForeignKey(
-      childColumns: [
-        'iid'
-      ],
-      parentColumns: [
-        'iid'
-      ],
-      entity: ImageEntity,
-    )
-  ],
+  // foreignKeys: [
+  // ForeignKey(
+  //   childColumns: [
+  //     'iid'
+  //   ],
+  //   parentColumns: [
+  //     'iid'
+  //   ],
+  //   entity: ImageEntity,
+  // )
+  // ],
 )
 class TagEntity {
   @PrimaryKey(autoGenerate: true)
@@ -28,11 +27,11 @@ class TagEntity {
 
   final String name;
 
-  final int iid;
+  // final int iid;
 
   TagEntity({
     this.tid,
-    required this.iid,
+    // required this.iid,
     required this.name,
   });
 }

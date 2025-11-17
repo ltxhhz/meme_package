@@ -25,7 +25,7 @@ class Config {
   static final List<String> logs = [];
   static final RouteObserver<PageRoute> routeObserver = RouteObserver();
 
-  static init() async {
+  static Future<void> init() async {
     supportDir = await getApplicationSupportDirectory();
     supportDir.createSync(recursive: true);
     tempDir = await getTemporaryDirectory();
@@ -37,6 +37,14 @@ class Config {
     memeDBFile = File(path.join(supportDir.path, 'meme.db'));
     final migration1to2 = Migration(1, 2, (database) async {
       Utils.logger.i('migration 1 to 2');
+      final groups = await database.query('groups');
+      for (var group in groups) {
+        final groupDir = Directory(path.join(dataPath.path, group['uuid'] as String));
+        if (groupDir.existsSync()) {
+          groupDir.renameSync(path.join(dataPath.path, group['gid'].toString()));
+        }
+      }
+      await database.execute('alter table groups drop column uuid;');
     });
     db = await $FloorAppDatabase
         .databaseBuilder(memeDBFile.path)
