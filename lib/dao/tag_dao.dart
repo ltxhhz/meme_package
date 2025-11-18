@@ -37,6 +37,9 @@ abstract class TagDao {
 ''')
   Future<List<TagEntity>> getTagsForImage(int imageId);
 
+  @Query('SELECT * FROM tags')
+  Future<List<TagEntity>> getAllTags();
+
   // 搜索tag
   @Query('''
   SELECT * FROM tags 

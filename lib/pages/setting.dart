@@ -36,7 +36,7 @@ class SettingPage extends StatelessWidget {
                       selector: (p0, p1) => p1.dataPath,
                     ),
                     onPressed: (_) => _showModifyDataPathDialog(context),
-                  )
+                  ),
                 ],
               )
             ],

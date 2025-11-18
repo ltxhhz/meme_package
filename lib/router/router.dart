@@ -6,6 +6,7 @@ import 'package:meme_package/utils.dart';
 import 'routes/home.dart';
 import 'routes/converter.dart';
 import 'routes/test.dart';
+import 'routes/tags.dart';
 
 Route<dynamic>? onGenerateRoute(RouteSettings settings) {
   final args = settings.arguments;
@@ -21,6 +22,8 @@ Route<dynamic>? onGenerateRoute(RouteSettings settings) {
       return TestRoute.getRoute();
     case SettingRoute.name:
       return SettingRoute.getRoute();
+    case TagsRoute.name:
+      return TagsRoute.getRoute();
     default:
       return HomeRoute.getRoute();
   }

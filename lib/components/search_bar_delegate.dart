@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meme_package/components/image_grid.dart';
+import 'package:meme_package/components/tags_item.dart';
 import 'package:meme_package/config.dart';
 import 'package:meme_package/entities/image.dart';
 import 'package:meme_package/entities/tag.dart';
@@ -39,6 +40,7 @@ class SearchBarDelegate extends SearchDelegate<String> {
         },
         icon: const Icon(Icons.clear),
       ),
+      SizedBox(width: 10),
     ];
   }
 
@@ -80,11 +82,25 @@ class SearchBarDelegate extends SearchDelegate<String> {
           final tags = snapshot.data![1] as List<TagEntity>;
           return Column(
             children: [
-              Row(
-                children: tags.map((tag) => Text(tag.name)).toList(),
+              SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: tags
+                        .map((tag) => tagItem(
+                              context,
+                              tag,
+                              onTap: (tag) {},
+                            ))
+                        .toList(),
+                  ),
+                ),
               ),
-              if (tags.isNotEmpty) Spacer(),
-              if (images.isEmpty) Text('没有结果'),
+              if (tags.isNotEmpty) SizedBox(height: 20),
+              if (images.isEmpty) Center(child: Text('没有结果')),
               if (images.isNotEmpty)
                 GridView.builder(
                   shrinkWrap: true,
@@ -241,17 +257,22 @@ class SearchBarDelegate extends SearchDelegate<String> {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}'); // 错误提示
         } else {
-          return ListView.builder(
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(snapshot.data![index].name),
-                onTap: () {
-                  query = snapshot.data![index].name;
-                  showResults(context);
-                },
-              );
-            },
-            itemCount: snapshot.data!.length,
+          return Padding(
+            padding: EdgeInsetsGeometry.all(8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: snapshot.data!
+                  .map((tag) => tagItem(
+                        context,
+                        tag,
+                        onTap: (tag) {
+                          query = tag.name;
+                          showResults(context);
+                        },
+                      ))
+                  .toList(),
+            ),
           );
         }
       },

@@ -383,6 +383,13 @@ class _$TagDao extends TagDao {
   }
 
   @override
+  Future<List<TagEntity>> getAllTags() async {
+    return _queryAdapter.queryList('SELECT * FROM tags',
+        mapper: (Map<String, Object?> row) =>
+            TagEntity(tid: row['tid'] as int?, name: row['name'] as String));
+  }
+
+  @override
   Future<List<TagEntity>> searchTag(String name) async {
     return _queryAdapter.queryList(
         'SELECT * FROM tags    WHERE name LIKE \'%\' || ?1 || \'%\'',

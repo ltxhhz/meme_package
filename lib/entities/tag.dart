@@ -34,4 +34,14 @@ class TagEntity {
     // required this.iid,
     required this.name,
   });
+
+  TagEntity copyWith({
+    int? tid,
+    String? name,
+  }) {
+    return TagEntity(
+      tid: tid ?? this.tid,
+      name: name ?? this.name,
+    );
+  }
 }
